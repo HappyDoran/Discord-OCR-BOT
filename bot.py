@@ -7,12 +7,13 @@ from pathlib import Path
 import pytesseract
 import cv2
 import os
+import re
 from difflib import SequenceMatcher
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents= intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G2uyTk.f2rAyikzCo_hPeWSn-CGgIi6MDoRRLPj1y37gA"
+token = "token"
 
 
 @bot.event
@@ -72,12 +73,14 @@ async def save(ctx):
                 # print(index[0])
 
                 print("인식한 맵 이름 : " + l[index[0] - 1])
-                print("인식한 기록 : " + l[index[0] + 1])
+                new_str = re.sub(r"[^0-9]", "", l[index[0] + 1])
+                record = re.sub(r'(.{2})', r':\1', new_str)[1:]
+                print("인식한 기록 : " + record)
 
                 if os.path.exists(path):
                     os.remove(path)
 
-                await ctx.channel.send("인식한 맵 이름 : {0}\n인식한 기록 : {1}".format(l[index[0] - 1], l[index[0] + 1]))
+                await ctx.channel.send("인식한 맵 이름 : {0}\n인식한 기록 : {1}".format(l[index[0] - 1], record))
 @bot.command()
 async def 도움말(ctx):
     embed = discord.Embed(title='제 소개를 해볼게요!',
@@ -95,8 +98,6 @@ async def 도움말(ctx):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send("명령어를 찾지 못했습니다")
-
-
 
 
 bot.run(token)
