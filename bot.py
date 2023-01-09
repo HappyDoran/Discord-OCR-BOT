@@ -75,6 +75,7 @@ async def save(ctx):
                 index = [i for i in range(len(l)) if find_berry in l[i]]
                 # print(index[0])
                 map = l[index[0] - 1]
+                map = map.replace(" ", "")
                 print("인식한 맵 이름 : " + map)
                 rc  = re.sub(r"[^0-9]", "", l[index[0] + 1])
                 record = re.sub(r'(.{2})', r':\1', rc)[1:]
@@ -85,15 +86,18 @@ async def save(ctx):
 
                 max_match_rate = 0
 
+                #맵 이름 비교후 일치율 비교
                 f = open('map.csv', 'r', encoding='cp949')
                 rdr = csv.reader(f)
                 for line in rdr:
+                    # print("{0} {1}".format(line[0],SequenceMatcher(None, map, line[0]).ratio()))
                     if SequenceMatcher(None, map, line[0]).ratio() > max_match_rate :
                         max_match_rate = SequenceMatcher(None, map, line[0]).ratio()
                         real_map = line[0]
 
                 f.close()
 
+                real_map = real_map.replace("//", "[R]")
                 print("실제 맵 이름 : " + real_map)
 
                 await ctx.channel.send("인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2}".format(l[index[0] - 1], record, real_map))
