@@ -87,10 +87,11 @@ async def save(ctx):
 
                 #키워드 "기록"으로 인식된 문자열이 있을 경우에는
                 if index :
-                    map = l[index[0] - 1]
+                    index = index[0]
+                    map = l[index - 1]
                     map = map.replace(" ", "")
                     print("인식한 맵 이름 : " + map)
-                    rc = re.sub(r"[^0-9]", "", l[index[0] + 1])
+                    rc = re.sub(r"[^0-9]", "", l[index + 1])
                     record = re.sub(r'(.{2})', r':\1', rc)[1:]
                     print("인식한 기록 : " + record)
 
@@ -127,7 +128,7 @@ async def save(ctx):
                 print("실제 맵 이름 : " + real_map)
 
                 await ctx.channel.send(
-                    "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2}".format(l[index[0] - 1], record, real_map))
+                    "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2}".format(l[index - 1], record, real_map))
 
 
 @bot.command()

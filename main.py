@@ -5,7 +5,7 @@ import csv
 
 
 
-path = 'Photo/2e810c98-5e6e-4eb9-9a81-0acbca0b1b78.png'
+path = 'Photo/5b80a0cb-cdc7-4cd6-af13-7a55f9d4ea2e.jpg'
 
 image = cv2.imread(path)
 
