@@ -1,5 +1,3 @@
-import time
-
 import discord
 from discord.ext import commands
 import uuid
@@ -16,7 +14,7 @@ from difflib import SequenceMatcher
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "token"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G5BDNX.FCpHvL4v8gsvMqxJ_q54yKYXWYAvDwg2oOdSV0"
 
 
 @bot.event
@@ -25,20 +23,14 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('실뭉치 가지고 놀이'))
     print('[알림]ㅈ냥이 "ON"')
 
-
 @bot.event
 async def on_message(msg):
     if msg.author.bot: return None
     await bot.process_commands(msg)
 
-
 @bot.command()
 async def 안녕(ctx):
     await ctx.channel.send("네 주인님")
-
-@bot.command()
-async def 상빈(ctx):
-    await ctx.channel.send("오해에요 오해 걔가 먼저 손 잡았어요.")
 
 @bot.command()
 async def save(ctx):
@@ -80,7 +72,6 @@ async def save(ctx):
                 l = list(filter(None, l))
                 print(l)
 
-
                 # 키워드 "기록"으로 문자열 인덱스 추출
                 find_keyword = '기록'
                 index = [i for i in range(len(l)) if find_keyword in l[i]]
@@ -88,24 +79,22 @@ async def save(ctx):
                 #키워드 "기록"으로 인식된 문자열이 있을 경우에는
                 if index :
                     index = index[0]
-                    map = l[index - 1]
-                    map = map.replace(" ", "")
-                    print("인식한 맵 이름 : " + map)
-                    rc = re.sub(r"[^0-9]", "", l[index + 1])
-                    record = re.sub(r'(.{2})', r':\1', rc)[1:]
-                    print("인식한 기록 : " + record)
 
                 #키워드 검색 결과가 없을 경우에는 "주간 최고 기록" 이라는 문자열과 일치도를 조사
                 else:
                     for i in l:
                         if SequenceMatcher(None, "주간 최고 기록", i).ratio() > 0.5 :
                             index = l.index(i)
-                    map = l[index - 1]
-                    map = map.replace(" ", "")
-                    print("인식한 맵 이름 : " + map)
-                    rc = re.sub(r"[^0-9]", "", l[index + 1])
-                    record = re.sub(r'(.{2})', r':\1', rc)[1:]
-                    print("인식한 기록 : " + record)
+
+                map = l[index - 1]
+                map = map.replace(" ", "")
+                print("인식한 맵 이름 : " + map)
+                rc = re.sub(r"[^0-9]", "", l[index + 1])
+                record = re.sub(r'(.{2})', r':\1', rc)[1:]
+                print("인식한 기록 : " + record)
+                compare_record = int(record.replace(":",""))
+                print(compare_record)
+
 
                 if os.path.exists(imageName):
                     os.remove(imageName)
@@ -114,22 +103,48 @@ async def save(ctx):
 
                 # 맵 이름 비교후 일치율 비교
 
-                f = open('map.csv', 'r', encoding='cp949')
+                f = open('mapp.csv', 'r', encoding='UTF-8')
                 rdr = csv.reader(f)
                 for line in rdr:
                     # print("{0} {1}".format(line[0],SequenceMatcher(None, map, line[0]).ratio()))
-                    if SequenceMatcher(None, map, line[0]).ratio() > max_match_rate:
-                        max_match_rate = SequenceMatcher(None, map, line[0]).ratio()
-                        real_map = line[0]
+                    if SequenceMatcher(None, map, line[1]).ratio() > max_match_rate:
+                        max_match_rate = SequenceMatcher(None, map, line[1]).ratio()
+                        real_map = line[1]
+                        rec_list = line
+
+                for i in range(2,7):
+                    rec_list[i] = int(rec_list[i])
+
+                print(rec_list)
+
+                #노가다
+                if compare_record <= rec_list[2] :
+                    tier = "강주력"
+                elif compare_record > rec_list[2] and compare_record <= rec_list[3] :
+                    tier = "주력"
+                elif compare_record > rec_list[3] and compare_record <= rec_list[4] :
+                    tier = "1군"
+                elif compare_record > rec_list[4] and compare_record <= rec_list[5] :
+                    tier = "2군"
+                elif compare_record > rec_list[5] and compare_record <= rec_list[6] :
+                    tier = "3군"
+                else :
+                    tier = "의견 없음"
 
                 f.close()
 
                 real_map = real_map.replace("//", "[R]")
                 print("실제 맵 이름 : " + real_map)
-
-                await ctx.channel.send(
-                    "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2}".format(l[index - 1], record, real_map))
-
+                if ctx.message.author.nick:
+                    await ctx.channel.send(
+                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
+                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map,record,ctx.message.author.nick,tier)
+                    )
+                else :
+                    await ctx.channel.send(
+                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
+                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map, record, ctx.message.author.name,tier)
+                    )
 
 @bot.command()
 async def point(msg):
@@ -138,7 +153,6 @@ async def point(msg):
 
     f = open("Data/{0}.json".format(id), 'w')
     f.close()
-
 
 @bot.command()
 async def 도움말(ctx):
@@ -152,11 +166,9 @@ async def 도움말(ctx):
     embed.set_footer(text='footer부분입니다')
     await ctx.channel.send(embed=embed)
 
-
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send("명령어를 찾지 못했습니다")
-
 
 bot.run(token)
