@@ -31,19 +31,16 @@ import json
 
 file_path = "sample.json"
 
-data = {}
-data['users'] = []
-data['users'].append({
-    "title": "How to get stroage size",
-    "url": "https://codechacha.com/ko/get-free-and-total-size-of-volumes-in-android/",
-    "draft": "false"
+json_data = {}
+
+with open(file_path, "r") as json_file:
+    json_data = json.load(json_file)
+
+json_data['users'].append({
+    "title": "How to parse JSON in android",
+    "url": "https://codechacha.com/ko/how-to-parse-json-in-android/",
+    "draft": "true"
 })
-data['users'].append({
-    "title": "Android Q, Scoped Storage",
-    "url": "https://codechacha.com/ko/android-q-scoped-storage/",
-    "draft": "false"
-})
-print(data)
 
 with open(file_path, 'w') as outfile:
-    json.dump(data, outfile, indent="\t")
+    json.dump(json_data, outfile, indent=4)

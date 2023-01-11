@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GshC3S.5W_d5GJTRyEgIiEtCnA9U4HbyFHOWcM8xolFNg"
+token = "token"
 
 
 @bot.event
@@ -156,14 +156,16 @@ async def file(ctx):
         nick = ctx.message.author.name
 
     file_path = "User.json"
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-        print(data)
 
-    data[id].append({
-        "name": nick,
+    data = {}
+    data['users'] = []
+    data['users'].append({
+        "id": id,
+        "nickname": nick,
         "point": 0
     })
+
+    print(data)
 
     with open(file_path, 'w', encoding='utf-8') as outfile:
         json.dump(data, outfile, indent="\t",ensure_ascii=False)
