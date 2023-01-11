@@ -10,11 +10,12 @@ import os
 import re
 import csv
 from difflib import SequenceMatcher
+import json
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G5BDNX.FCpHvL4v8gsvMqxJ_q54yKYXWYAvDwg2oOdSV0"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GhyQVB.ujAM8-W4ktsHOqzUIhMbcCMOBMRpcqB850uOK0"
 
 
 @bot.event
@@ -27,6 +28,7 @@ async def on_ready():
 async def on_message(msg):
     if msg.author.bot: return None
     await bot.process_commands(msg)
+
 
 @bot.command()
 async def 안녕(ctx):
@@ -147,12 +149,27 @@ async def save(ctx):
                     )
 
 @bot.command()
-async def point(msg):
-    id = msg.author.id
-    name = msg.author.username
+async def file(ctx):
+    id = ctx.message.author.id
+    nick = ctx.message.author.nick
+    if not nick :
+        nick = ctx.message.author.name
 
-    f = open("Data/{0}.json".format(id), 'w')
-    f.close()
+    file_path = "User.json"
+
+    User = {}
+    User[id] = []
+    User[id].append({
+        "name": nick,
+        "point": 0
+    })
+
+    print(User)
+
+    with open(file_path, 'w', encoding='utf-8') as outfile:
+        json.dump(User, outfile, indent="\t",ensure_ascii=False)
+
+    await ctx.channel.send("정보 저장 완료!")
 
 @bot.command()
 async def 도움말(ctx):
