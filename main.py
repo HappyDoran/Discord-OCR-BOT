@@ -28,19 +28,19 @@
 # print(l)
 
 import json
+from collections import OrderedDict
+import pprint
 
-file_path = "sample.json"
+file_path = 'User.json'
 
-json_data = {}
+with open(file_path) as f:
+    df = json.load(f)
 
-with open(file_path, "r") as json_file:
-    json_data = json.load(json_file)
+print(df['{0}'.format(249356319616794627)])
 
-json_data['users'].append({
-    "title": "How to parse JSON in android",
-    "url": "https://codechacha.com/ko/how-to-parse-json-in-android/",
-    "draft": "true"
-})
+df['{0}'.format(249356319616794628)] = {'nickname': '서동윈', 'point': 2}
 
-with open(file_path, 'w') as outfile:
-    json.dump(json_data, outfile, indent=4)
+print(df)
+
+with open(file_path, 'w') as f:
+    json.dump(df, f, indent=2, ensure_ascii=False)

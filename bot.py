@@ -15,8 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "token"
-
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GdO5bW.PZ9l3LrNgxBFv1Phr1WvyKJxYWT63YyEVjLi70"
 
 @bot.event
 async def on_ready():
@@ -28,7 +27,6 @@ async def on_ready():
 async def on_message(msg):
     if msg.author.bot: return None
     await bot.process_commands(msg)
-
 
 @bot.command()
 async def 안녕(ctx):
@@ -63,7 +61,6 @@ async def save(ctx):
                 # output = image
 
                 rgb_image = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
-
 
                 # use Tesseract to OCR the image
                 text = pytesseract.image_to_string(rgb_image, lang='kor')
@@ -157,18 +154,27 @@ async def file(ctx):
 
     file_path = "User.json"
 
-    data = {}
-    data['users'] = []
-    data['users'].append({
-        "id": id,
-        "nickname": nick,
-        "point": 0
-    })
+    # data = {}
+    # data['users'] = []
+    #
+    # with open(file_path, 'w', encoding='utf-8') as outfile:
+    #     json.dump(data, outfile, indent="\t")
 
-    print(data)
+    with open(file_path) as f:
+        df = json.load(f)
 
-    with open(file_path, 'w', encoding='utf-8') as outfile:
-        json.dump(data, outfile, indent="\t",ensure_ascii=False)
+    df['{0}'.format(id)] = {
+        'nickname': nick,
+        'point': 0
+    }
+
+    print(df['{0}'.format(id)])
+
+    print(df)
+    print(len(df))
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
 
     await ctx.channel.send("정보 저장 완료!")
 
@@ -179,9 +185,10 @@ async  def register(ctx, *input):
     teammate3 = re.compile(' ')
     # teammate4 = re.compile(' ')
 
+    await ctx.channel.send("친선 뛴사람? ")
     for i in input:
         print(i)
-
+        await ctx.channel.send(i)
 
 @bot.command()
 async def 도움말(ctx):

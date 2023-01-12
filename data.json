@@ -1,0 +1,17 @@
+user{{
+	"Smasung": {
+		"\uc0bc\uc131\uc804\uc790": "1",
+		"\uc0bc\uc131SDS": "2",
+		"\uc0bc\uc131SDI": "3"
+	},
+	"LG": {
+		"LG\uc804\uc790": "4",
+		"LGCNS": "5",
+		"LG\ud654\ud559": "6"
+	},
+	"hyundai": {
+		"\ud604\ub300\uc790\ub3d9\ucc28": "11",
+		"\ud604\ub300\ubaa8\ube44\uc2a4": "10",
+		"\ud604\ub300\uc704\uc544": "9"
+	}
+}]
