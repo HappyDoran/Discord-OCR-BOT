@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GBqLEO.zG7_LlJ2EqcZKLcv6RayV40kieBiWySNTp9Jy0"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GPY-m_.FD0AVeVBpEXKGsH__iWlcpF9HJyT7YmsjmrpS4"
 
 
 @bot.event
@@ -199,6 +199,7 @@ async def register(ctx, *input):
     # await ctx.channel.send("등록 되었다")
     for i in input:
         print(i)
+
         if i == "강주력":
             i = 0
 
@@ -217,44 +218,121 @@ async def register(ctx, *input):
         elif i == "4군":
             i = 5
 
-        else :
+        else:
+            i = 6
+
+        if i == 6 :
             await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
+        else :
+            try:
+                with open(file_path) as f:
+                    df = json.load(f)
 
-        try:
-            with open(file_path) as f:
-                df = json.load(f)
-                print(df)
-
-            if not df:
-                df['{0}'.format(id)] = {
-                    'nickname': nick,
-                    'point': 0,
-                    'tier': i
-                }
-                await ctx.channel.send("정보 저장 완료!")
-
-            else:
-                if df.get('{0}'.format(id)) == None:
-
-                    print(df.get('{0}'.format(id)))
-
+                if not df:
                     df['{0}'.format(id)] = {
                         'nickname': nick,
                         'point': 0,
                         'tier': i
                     }
+                    print(df)
                     await ctx.channel.send("정보 저장 완료!")
 
                 else:
-                    df['{0}'.format(id)]['tier'] = i
-                    await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
+                    if df.get('{0}'.format(id)) == None:
 
-            with open(file_path, 'w') as f:
-                json.dump(df, f, indent=2, ensure_ascii=False)
 
-        except:
-            pass
+                        df['{0}'.format(id)] = {
+                            'nickname': nick,
+                            'point': 0,
+                            'tier': i
+                        }
+                        print(df)
+                        await ctx.channel.send("정보 저장 완료!")
 
+                    else:
+                        # df['{0}'.format(id)]['tier'] = i
+                        print(df)
+                        await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
+
+                with open(file_path, 'w') as f:
+                    json.dump(df, f, indent=2, ensure_ascii=False)
+
+            except:
+                pass
+
+@bot.command()
+async def update(ctx, *input):
+    id = ctx.message.author.id
+    nick = ctx.message.author.nick
+    if not nick:
+        nick = ctx.message.author.name
+
+    file_path = "User.json"
+
+    # await ctx.channel.send("등록 되었다")
+    for i in input:
+        print(i)
+
+        if i == "강주력":
+            i = 0
+
+        elif i == "주력":
+            i = 1
+
+        elif i == "1군":
+            i = 2
+
+        elif i == "2군":
+            i = 3
+
+        elif i == "3군":
+            i = 4
+
+        elif i == "4군":
+            i = 5
+
+        else:
+            i = 6
+
+        if i == 6 :
+            await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
+        else :
+            try:
+                with open(file_path) as f:
+                    df = json.load(f)
+
+                if not df:
+                    df['{0}'.format(id)] = {
+                        'nickname': nick,
+                        'point': 0,
+                        'tier': i
+                    }
+                    print(df)
+                    await ctx.channel.send("정보 저장 완료!")
+
+                else:
+                    if df.get('{0}'.format(id)) == None:
+
+                        print(df.get('{0}'.format(id)))
+
+                        df['{0}'.format(id)] = {
+                            'nickname': nick,
+                            'point': 0,
+                            'tier': i
+                        }
+                        print(df)
+                        await ctx.channel.send("정보 저장 완료!")
+
+                    else:
+                        df['{0}'.format(id)]['tier'] = i
+                        print(df)
+                        await ctx.channel.send("군 수정 완료!")
+
+                with open(file_path, 'w') as f:
+                    json.dump(df, f, indent=2, ensure_ascii=False)
+
+            except:
+                pass
 
 @bot.command()
 async def 공통(ctx):
@@ -264,7 +342,7 @@ async def 공통(ctx):
         nick = ctx.message.author.name
 
     file_path = "User.json"
-    week_map = "해적 로비 절벽의 전투"
+    week_map = "팩토리 미완성 5구역"
 
     with open(file_path) as f:
         df = json.load(f)
@@ -272,7 +350,7 @@ async def 공통(ctx):
     if df.get('{0}'.format(id)) == None:
         await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
 
-    else :
+    else:
         # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
         try:
             url = ctx.message.attachments[0].url  # check for an image, call exception if none found
@@ -372,26 +450,27 @@ async def 공통(ctx):
 
                     if real_map != week_map:
                         await ctx.channel.send("금주의 은하스쿨 맵이 아닙니다!")
-                    else :
-                        if df.get('{0}'.format(id))['tier'] > tier:
+                    else:
+                        if df.get('{0}'.format(id))['tier'] >= tier:
                             df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 5000
                             await ctx.channel.send("금주의 은하스쿨 완료!")
                             await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
-                        else :
+                        else:
                             await ctx.channel.send("군에 맞지 않는 기록입니다! ")
-
 
                     with open(file_path, 'w') as f:
                         json.dump(df, f, indent=2, ensure_ascii=False)
 
+
 @bot.command()
 async def 도움말(ctx):
-    embed = discord.Embed(title='제 소개를 해볼게요!',
+    embed = discord.Embed(title='슈퍼 ㅈ냥이 사용 설명서',
                           description='궁금해하실 것 같은 항목들은 미리 준비해놨어요!',
                           colour=0xff7676)
-    embed.add_field(name='> !기능1', value='기능1에 대한 설명')
-    embed.add_field(name='> !기능2', value='기능2에 대한 설명')
-    embed.add_field(name='> !기능3', value='기능3에 대한 설명')
+    embed.add_field(name='> !register ()', value='군 등록 입력 예시1) \n!register 1군\n군 등록 입력 예시2) \n!register 주력')
+    embed.add_field(name='> !update ()', value='군 업데이트 입력 예시1) \n!update 1군\n군 업데이트 입력 예시2) \n!update 주력')
+    embed.add_field(name='> !공통', value='사진 첨부와 동시에 !공통\n 포인트 자동 누적')
+    embed.add_field(name='> !save', value='맵, 기록, 군 파악 ')
     # embed.set_thumbnail(file='Thumbnail/KakaoTalk_Photo_2023-01-06-16-36-02.png')
     embed.set_footer(text='footer부분입니다')
     await ctx.channel.send(embed=embed)
