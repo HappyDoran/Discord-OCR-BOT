@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GRYvQb.V3qjnoZTN8SMQgI9NhCe5wzN39hcIzoS5g1xaY"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GBqLEO.zG7_LlJ2EqcZKLcv6RayV40kieBiWySNTp9Jy0"
 
 
 @bot.event
@@ -198,27 +198,32 @@ async def register(ctx, *input):
 
     # await ctx.channel.send("등록 되었다")
     for i in input:
-        if i == 1:
-            i = "1군"
+        print(i)
+        if i == "강주력":
+            i = 0
 
-        elif i == 2:
-            i = "1군"
+        elif i == "주력":
+            i = 1
 
-        elif i == 3:
-            i = "1군"
+        elif i == "1군":
+            i = 2
 
-        elif i == 4:
-            i = "1군"
+        elif i == "2군":
+            i = 3
 
-        elif i == "강주" or "강":
-            i = "강주력"
+        elif i == "3군":
+            i = 4
 
-        elif i == "주":
-            i = "주력"
+        elif i == "4군":
+            i = 5
+
+        else :
+            await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
 
         try:
             with open(file_path) as f:
                 df = json.load(f)
+                print(df)
 
             if not df:
                 df['{0}'.format(id)] = {
@@ -230,6 +235,8 @@ async def register(ctx, *input):
 
             else:
                 if df.get('{0}'.format(id)) == None:
+
+                    print(df.get('{0}'.format(id)))
 
                     df['{0}'.format(id)] = {
                         'nickname': nick,
@@ -250,123 +257,132 @@ async def register(ctx, *input):
 
 
 @bot.command()
-async def 개인(ctx):
+async def 공통(ctx):
     id = ctx.message.author.id
     nick = ctx.message.author.nick
     if not nick:
         nick = ctx.message.author.name
 
-    # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
-    try:
-        url = ctx.message.attachments[0].url  # check for an image, call exception if none found
-    except IndexError:
-        print("Error: No attachments")
-        await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
-    else:
-        if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
-            r = requests.get(url, stream=True)
-            imageName = str(Path.home() / "PycharmProjects" / "DiscordBot" / "Photo" / Path(
-                str(uuid.uuid4()) + '.jpg'))  # uuid creates random unique id to use for image names
-            with open(imageName, 'wb') as out_file:
-                print('Saving image : ' + imageName)
-                # print(out_file)
-                # print(r.raw)
-                shutil.copyfileobj(r.raw, out_file)  # save image (goes to project directory)
+    file_path = "User.json"
+    week_map = "해적 로비 절벽의 전투"
 
-                # time.sleep(10)
+    with open(file_path) as f:
+        df = json.load(f)
 
-                image = cv2.imread(imageName)
+    if df.get('{0}'.format(id)) == None:
+        await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
 
-                h, w, c = image.shape
-                output = image[int(0.3 * h): int(0.53 * h), int(0.7 * w): int(0.92 * w)]
-                # output = image
+    else :
+        # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
+        try:
+            url = ctx.message.attachments[0].url  # check for an image, call exception if none found
+        except IndexError:
+            print("Error: No attachments")
+            await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
+        else:
+            if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+                r = requests.get(url, stream=True)
+                imageName = str(Path.home() / "PycharmProjects" / "DiscordBot" / "Photo" / Path(
+                    str(uuid.uuid4()) + '.jpg'))  # uuid creates random unique id to use for image names
+                with open(imageName, 'wb') as out_file:
+                    print('Saving image : ' + imageName)
+                    # print(out_file)
+                    # print(r.raw)
+                    shutil.copyfileobj(r.raw, out_file)  # save image (goes to project directory)
 
-                rgb_image = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+                    # time.sleep(10)
 
-                # use Tesseract to OCR the image
-                text = pytesseract.image_to_string(rgb_image, lang='kor')
-                # print(text)
+                    image = cv2.imread(imageName)
 
-                # 띄어쓰기로 문자열 분할 후 공백문자열 삭제
-                l = text.split('\n')
-                l = list(filter(None, l))
-                print(l)
+                    h, w, c = image.shape
+                    output = image[int(0.3 * h): int(0.53 * h), int(0.7 * w): int(0.92 * w)]
+                    # output = image
 
-                # 키워드 "기록"으로 문자열 인덱스 추출
-                find_keyword = '기록'
-                index = [i for i in range(len(l)) if find_keyword in l[i]]
+                    rgb_image = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
 
-                # 키워드 "기록"으로 인식된 문자열이 있을 경우에는
-                if index:
-                    index = index[0]
+                    # use Tesseract to OCR the image
+                    text = pytesseract.image_to_string(rgb_image, lang='kor')
+                    # print(text)
 
-                # 키워드 검색 결과가 없을 경우에는 "주간 최고 기록" 이라는 문자열과 일치도를 조사
-                else:
-                    for i in l:
-                        if SequenceMatcher(None, "주간 최고 기록", i).ratio() > 0.5:
-                            index = l.index(i)
+                    # 띄어쓰기로 문자열 분할 후 공백문자열 삭제
+                    l = text.split('\n')
+                    l = list(filter(None, l))
+                    print(l)
 
-                map = l[index - 1]
-                map = map.replace(" ", "")
-                print("인식한 맵 이름 : " + map)
-                rc = re.sub(r"[^0-9]", "", l[index + 1])
-                record = re.sub(r'(.{2})', r':\1', rc)[1:]
-                print("인식한 기록 : " + record)
-                compare_record = int(record.replace(":", ""))
-                print(compare_record)
+                    # 키워드 "기록"으로 문자열 인덱스 추출
+                    find_keyword = '기록'
+                    index = [i for i in range(len(l)) if find_keyword in l[i]]
 
-                if os.path.exists(imageName):
-                    os.remove(imageName)
+                    # 키워드 "기록"으로 인식된 문자열이 있을 경우에는
+                    if index:
+                        index = index[0]
 
-                max_match_rate = 0
+                    # 키워드 검색 결과가 없을 경우에는 "주간 최고 기록" 이라는 문자열과 일치도를 조사
+                    else:
+                        for i in l:
+                            if SequenceMatcher(None, "주간 최고 기록", i).ratio() > 0.5:
+                                index = l.index(i)
 
-                # 맵 이름 비교후 일치율 비교
+                    map = l[index - 1]
+                    map = map.replace(" ", "")
 
-                f = open('mapp.csv', 'r', encoding='UTF-8')
-                rdr = csv.reader(f)
-                for line in rdr:
-                    # print("{0} {1}".format(line[0],SequenceMatcher(None, map, line[0]).ratio()))
-                    if SequenceMatcher(None, map, line[1]).ratio() > max_match_rate:
-                        max_match_rate = SequenceMatcher(None, map, line[1]).ratio()
-                        real_map = line[1]
-                        rec_list = line
+                    rc = re.sub(r"[^0-9]", "", l[index + 1])
+                    record = re.sub(r'(.{2})', r':\1', rc)[1:]
 
-                for i in range(2, 7):
-                    rec_list[i] = int(rec_list[i])
+                    compare_record = int(record.replace(":", ""))
 
-                print(rec_list)
+                    if os.path.exists(imageName):
+                        os.remove(imageName)
 
-                # 노가다
-                if compare_record <= rec_list[2]:
-                    tier = "강주력"
-                elif compare_record > rec_list[2] and compare_record <= rec_list[3]:
-                    tier = "주력"
-                elif compare_record > rec_list[3] and compare_record <= rec_list[4]:
-                    tier = "1군"
-                elif compare_record > rec_list[4] and compare_record <= rec_list[5]:
-                    tier = "2군"
-                elif compare_record > rec_list[5] and compare_record <= rec_list[6]:
-                    tier = "3군"
-                else:
-                    tier = "의견 없음"
+                    max_match_rate = 0
 
-                f.close()
+                    # 맵 이름 비교후 일치율 비교
 
-                real_map = real_map.replace("//", "[R]")
-                print("실제 맵 이름 : " + real_map)
-                if ctx.message.author.nick:
-                    await ctx.channel.send(
-                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
-                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map, record,
-                                                                                     nick, tier)
-                    )
-                else:
-                    await ctx.channel.send(
-                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
-                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map, record,
-                                                                                     nick, tier)
-                    )
+                    f = open('mapp.csv', 'r', encoding='UTF-8')
+                    rdr = csv.reader(f)
+                    for line in rdr:
+                        if SequenceMatcher(None, map, line[1]).ratio() > max_match_rate:
+                            max_match_rate = SequenceMatcher(None, map, line[1]).ratio()
+                            real_map = line[1]
+                            rec_list = line
 
+                    for i in range(2, 7):
+                        rec_list[i] = int(rec_list[i])
+
+                    # 노가다
+                    if compare_record <= rec_list[2]:
+                        tier = 0
+                    elif compare_record > rec_list[2] and compare_record <= rec_list[3]:
+                        tier = 1
+                    elif compare_record > rec_list[3] and compare_record <= rec_list[4]:
+                        tier = 2
+                    elif compare_record > rec_list[4] and compare_record <= rec_list[5]:
+                        tier = 3
+                    elif compare_record > rec_list[5] and compare_record <= rec_list[6]:
+                        tier = 4
+                    else:
+                        tier = 5
+
+                    f.close()
+
+                    real_map = real_map.replace("//", "[R]")
+
+                    print(df.get('{0}'.format(id))['tier'])
+                    print(tier)
+
+                    if real_map != week_map:
+                        await ctx.channel.send("금주의 은하스쿨 맵이 아닙니다!")
+                    else :
+                        if df.get('{0}'.format(id))['tier'] > tier:
+                            df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 5000
+                            await ctx.channel.send("금주의 은하스쿨 완료!")
+                            await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
+                        else :
+                            await ctx.channel.send("군에 맞지 않는 기록입니다! ")
+
+
+                    with open(file_path, 'w') as f:
+                        json.dump(df, f, indent=2, ensure_ascii=False)
 
 @bot.command()
 async def 도움말(ctx):
