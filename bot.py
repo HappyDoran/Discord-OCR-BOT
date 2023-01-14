@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "token"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GdkFGo.if0A-OwDh92dKzlWi3F_f4f-c6qe4Rf0q4s3NE"
 
 
 @bot.event
@@ -461,6 +461,27 @@ async def 공통(ctx):
                     with open(file_path, 'w') as f:
                         json.dump(df, f, indent=2, ensure_ascii=False)
 
+@bot.command()
+async def 내부텟(ctx):
+    id = ctx.message.author.id
+    nick = ctx.message.author.nick
+    if not nick:
+        nick = ctx.message.author.name
+
+    file_path = "User.json"
+
+    with open(file_path) as f:
+        df = json.load(f)
+
+    if df.get('{0}'.format(id)) == None:
+        await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
+
+    else :
+        df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 50000
+        await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
 
 @bot.command()
 async def 도움말(ctx):
