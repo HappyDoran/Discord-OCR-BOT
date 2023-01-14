@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GPY-m_.FD0AVeVBpEXKGsH__iWlcpF9HJyT7YmsjmrpS4"
+token = "token"
 
 
 @bot.event
