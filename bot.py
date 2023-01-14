@@ -15,7 +15,7 @@ import json
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GdkFGo.if0A-OwDh92dKzlWi3F_f4f-c6qe4Rf0q4s3NE"
+token = "token"
 
 
 @bot.event
@@ -478,6 +478,25 @@ async def 내부텟(ctx):
 
     else :
         df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 50000
+        df.get('{0}'.format(id))['tier'] = df.get('{0}'.format(id))['tier'] - 1
+        if df.get('{0}'.format(id))['tier'] == 0:
+            tier = "강주력"
+
+        elif df.get('{0}'.format(id))['tier'] == 1:
+            tier = "주력"
+
+        elif df.get('{0}'.format(id))['tier'] == 2:
+            tier = "1군"
+
+        elif df.get('{0}'.format(id))['tier'] == 3:
+            tier = "2군"
+
+        elif df.get('{0}'.format(id))['tier'] == 4:
+            tier = "3군"
+
+        elif df.get('{0}'.format(id))['tier'] == 5:
+            tier = "4군"
+        await ctx.channel.send("{0} 승급 완료! 축하드립니다!".format(tier))
         await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
 
     with open(file_path, 'w') as f:
