@@ -11,11 +11,11 @@ import re
 import csv
 from difflib import SequenceMatcher
 import json
-from collections import OrderedDict
+from discord_buttons_plugin import  *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
-
+buttons = ButtonsClient(bot)
 token = "token"
 
 
@@ -252,6 +252,10 @@ async def register(ctx, *input):
                     else:
                         # df['{0}'.format(id)]['tier'] = i
                         print(df)
+                        # if df.get('{0}'.format(id))['nickname'] != nick:
+                        #     df.get('{0}'.format(id))['nickname'] = nick
+                        #     await ctx.channel.send("닉네임이 수정되었습니다.")
+                        # else:
                         await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
 
                 with open(file_path, 'w') as f:
@@ -532,17 +536,51 @@ async def 친선(ctx, *input):
 
 
 @bot.command()
+async def 개인(ctx):
+    # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
+    try:
+        url = ctx.message.attachments[0].url  # check for an image, call exception if none found
+    except IndexError:
+        print("Error: No attachments")
+        await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
+    else:
+        if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+            embed = discord.Embed(title='제목',
+                                  description="내용",
+                                  color=0x62c1cc)
+            embed.set_thumbnail(url = url)
+            embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
+            await ctx.channel.send(embed=embed)
+            await buttons.send(
+                # content="아래쪽 버튼을 눌러주세요.",
+                channel=ctx.channel.id,
+                components=[
+                               ActionRow([
+                                   Button(
+                                       label="은하스쿨 달성 완료!",
+                                       style=ButtonType().Primary,
+                                       custom_id="button_one"
+                                   )
+                               ])
+                           ]
+            )
+
+@buttons.click
+async def button_one(ctx):
+    await ctx.reply("버튼이 눌렸습니다.")
+
+@bot.command()
 async def 도움말(ctx):
-    embed = discord.Embed(title='슈퍼 ㅈ냥이 사용 설명서',
-                          description='궁금해하실 것 같은 항목들은 미리 준비해놨어요!',
-                          colour=0xff7676)
-    embed.add_field(name='> !register ()', value='군 등록 입력 예시1) \n!register 1군\n군 등록 입력 예시2) \n!register 주력')
-    embed.add_field(name='> !update ()', value='군 업데이트 입력 예시1) \n!update 1군\n군 업데이트 입력 예시2) \n!update 주력')
-    embed.add_field(name='> !공통', value='사진 첨부와 동시에 !공통\n 포인트 자동 누적')
-    embed.add_field(name='> !내부텟', value='카카오톡에 기록스샷 올린 후 !내부텟\n 포인트 자동 누적 및 군 상승')
-    embed.add_field(name='> !save', value='맵, 기록, 군 파악 ')
+    embed = discord.Embed(title='도움말',
+                          description="**!register**\n사용자 등록을 할 수 있습니다.\n`!register <군>` \n`1군일 경우 '1군' 입력, 주력일 경우 '주력' 입력`"
+                                      "\n\n**!update**\n군 업데이트를 할 수 있습니다.\n`!update <군>` \n`1군일 경우 '1군' 입력, 주력일 경우 '주력' 입력`"
+                                      "\n\n**!공통**\n은하수쿨 공통 숙제 인증을 받을 수 있습니다.\n `사진 첨부와 동시에 !공통`"
+                                      "\n\n**!내부텟**\n은하수 내부텟 포인트를 받을 수 있습니다.\n `카톡에 기록 스샷 첨부 후 확인 받으면 !내부텟`"
+                                      "\n\n**!친선**\n친선 포인트를 받을 수 있습니다.\n `!친선 <팀원1> <팀원2> <팀원3> <팀원4>`\n `친선 참여자 디스코드 닉네임 작성`"
+                                      "\n\n**!save**\n맵, 기록에 대한 군을 파악할 수 있습니다.\n `사진 첨부와 동시에 !공통`",
+                          color = 0x62c1cc)
     # embed.set_thumbnail(file='Thumbnail/KakaoTalk_Photo_2023-01-06-16-36-02.png')
-    embed.set_footer(text='footer부분입니다')
+    embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
     await ctx.channel.send(embed=embed)
 
 
