@@ -19,6 +19,7 @@ buttons = ButtonsClient(bot)
 token = "token"
 
 
+
 @bot.event
 async def on_ready():
     print(bot.user.name, "has connected to Discord.")
@@ -536,8 +537,13 @@ async def 친선(ctx, *input):
 
 
 @bot.command()
-async def 개인(ctx):
+async def 개인(ctx, *input):
     # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
+
+    id = ctx.message.author.id
+    nick = ctx.message.author.nick
+    if not nick:
+        nick = ctx.message.author.name
     try:
         url = ctx.message.attachments[0].url  # check for an image, call exception if none found
     except IndexError:
@@ -545,11 +551,11 @@ async def 개인(ctx):
         await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
     else:
         if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
-            embed = discord.Embed(title='제목',
-                                  description="내용",
+            embed = discord.Embed(title='{0} 개인 은하스쿨 '.format(nick),
+                                  description="{0}".format(input),
                                   color=0x62c1cc)
-            embed.set_thumbnail(url = url)
-            embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
+            embed.set_image(url = url)
+            # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
             await ctx.channel.send(embed=embed)
             await buttons.send(
                 # content="아래쪽 버튼을 눌러주세요.",
@@ -567,7 +573,7 @@ async def 개인(ctx):
 
 @buttons.click
 async def button_one(ctx):
-    await ctx.reply("버튼이 눌렸습니다.")
+    await ctx.channel.send("버튼이 눌렸습니다.")
 
 @bot.command()
 async def 도움말(ctx):
@@ -575,6 +581,7 @@ async def 도움말(ctx):
                           description="**!register**\n사용자 등록을 할 수 있습니다.\n`!register <군>` \n`1군일 경우 '1군' 입력, 주력일 경우 '주력' 입력`"
                                       "\n\n**!update**\n군 업데이트를 할 수 있습니다.\n`!update <군>` \n`1군일 경우 '1군' 입력, 주력일 경우 '주력' 입력`"
                                       "\n\n**!공통**\n은하수쿨 공통 숙제 인증을 받을 수 있습니다.\n `사진 첨부와 동시에 !공통`"
+                                      "\n\n**!개인**\n은하수쿨 개인 숙제 인증을 받을 수 있습니다.\n `사진 첨부와 동시에 !개인`"
                                       "\n\n**!내부텟**\n은하수 내부텟 포인트를 받을 수 있습니다.\n `카톡에 기록 스샷 첨부 후 확인 받으면 !내부텟`"
                                       "\n\n**!친선**\n친선 포인트를 받을 수 있습니다.\n `!친선 <팀원1> <팀원2> <팀원3> <팀원4>`\n `친선 참여자 디스코드 닉네임 작성`"
                                       "\n\n**!save**\n맵, 기록에 대한 군을 파악할 수 있습니다.\n `사진 첨부와 동시에 !공통`",
