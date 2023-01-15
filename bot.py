@@ -11,11 +11,12 @@ import re
 import csv
 from difflib import SequenceMatcher
 import json
+from collections import OrderedDict
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "token"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GnqPXo.7fsp1XE-SqiiizYAlFRWALyjsQx2l7E5KG9zOc"
 
 
 @bot.event
@@ -221,9 +222,9 @@ async def register(ctx, *input):
         else:
             i = 6
 
-        if i == 6 :
+        if i == 6:
             await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
-        else :
+        else:
             try:
                 with open(file_path) as f:
                     df = json.load(f)
@@ -239,7 +240,6 @@ async def register(ctx, *input):
 
                 else:
                     if df.get('{0}'.format(id)) == None:
-
 
                         df['{0}'.format(id)] = {
                             'nickname': nick,
@@ -259,6 +259,7 @@ async def register(ctx, *input):
 
             except:
                 pass
+
 
 @bot.command()
 async def update(ctx, *input):
@@ -294,9 +295,9 @@ async def update(ctx, *input):
         else:
             i = 6
 
-        if i == 6 :
+        if i == 6:
             await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
-        else :
+        else:
             try:
                 with open(file_path) as f:
                     df = json.load(f)
@@ -333,6 +334,7 @@ async def update(ctx, *input):
 
             except:
                 pass
+
 
 @bot.command()
 async def 공통(ctx):
@@ -461,6 +463,7 @@ async def 공통(ctx):
                     with open(file_path, 'w') as f:
                         json.dump(df, f, indent=2, ensure_ascii=False)
 
+
 @bot.command()
 async def 내부텟(ctx):
     id = ctx.message.author.id
@@ -476,7 +479,7 @@ async def 내부텟(ctx):
     if df.get('{0}'.format(id)) == None:
         await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
 
-    else :
+    else:
         df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 50000
         df.get('{0}'.format(id))['tier'] = df.get('{0}'.format(id))['tier'] - 1
         if df.get('{0}'.format(id))['tier'] == 0:
@@ -503,6 +506,23 @@ async def 내부텟(ctx):
         json.dump(df, f, indent=2, ensure_ascii=False)
 
 @bot.command()
+async def 친선(ctx, *input):
+
+    for i in input:
+        print(i)
+        file_path = "User.json"
+
+        with open(file_path) as f:
+            df = json.load(f)
+
+        for index , (key, elem) in enumerate(df.items()):
+            print(elem['nickname'])
+            print(index, key, elem)
+            if(i == elem['nickname']) :
+                print(key)
+
+
+@bot.command()
 async def 도움말(ctx):
     embed = discord.Embed(title='슈퍼 ㅈ냥이 사용 설명서',
                           description='궁금해하실 것 같은 항목들은 미리 준비해놨어요!',
@@ -510,6 +530,7 @@ async def 도움말(ctx):
     embed.add_field(name='> !register ()', value='군 등록 입력 예시1) \n!register 1군\n군 등록 입력 예시2) \n!register 주력')
     embed.add_field(name='> !update ()', value='군 업데이트 입력 예시1) \n!update 1군\n군 업데이트 입력 예시2) \n!update 주력')
     embed.add_field(name='> !공통', value='사진 첨부와 동시에 !공통\n 포인트 자동 누적')
+    embed.add_field(name='> !내부텟', value='카카오톡에 기록스샷 올린 후 !내부텟\n 포인트 자동 누적 및 군 상승')
     embed.add_field(name='> !save', value='맵, 기록, 군 파악 ')
     # embed.set_thumbnail(file='Thumbnail/KakaoTalk_Photo_2023-01-06-16-36-02.png')
     embed.set_footer(text='footer부분입니다')
