@@ -11,14 +11,12 @@ import re
 import csv
 from difflib import SequenceMatcher
 import json
-from discord_buttons_plugin import  *
+from discord_buttons_plugin import *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "token"
-
-
+token
 
 @bot.event
 async def on_ready():
@@ -554,26 +552,28 @@ async def 개인(ctx, *input):
             embed = discord.Embed(title='{0} 개인 은하스쿨 '.format(nick),
                                   description="{0}".format(input),
                                   color=0x62c1cc)
-            embed.set_image(url = url)
+            embed.set_image(url=url)
             # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
             await ctx.channel.send(embed=embed)
             await buttons.send(
                 # content="아래쪽 버튼을 눌러주세요.",
                 channel=ctx.channel.id,
                 components=[
-                               ActionRow([
-                                   Button(
-                                       label="은하스쿨 달성 완료!",
-                                       style=ButtonType().Primary,
-                                       custom_id="button_one"
-                                   )
-                               ])
-                           ]
+                    ActionRow([
+                        Button(
+                            label="은하스쿨 달성 완료!",
+                            style=ButtonType().Primary,
+                            custom_id="button_one"
+                        )
+                    ])
+                ]
             )
+
 
 @buttons.click
 async def button_one(ctx):
     await ctx.channel.send("버튼이 눌렸습니다.")
+
 
 @bot.command()
 async def 도움말(ctx):
@@ -585,7 +585,7 @@ async def 도움말(ctx):
                                       "\n\n**!내부텟**\n은하수 내부텟 포인트를 받을 수 있습니다.\n `카톡에 기록 스샷 첨부 후 확인 받으면 !내부텟`"
                                       "\n\n**!친선**\n친선 포인트를 받을 수 있습니다.\n `!친선 <팀원1> <팀원2> <팀원3> <팀원4>`\n `친선 참여자 디스코드 닉네임 작성`"
                                       "\n\n**!save**\n맵, 기록에 대한 군을 파악할 수 있습니다.\n `사진 첨부와 동시에 !공통`",
-                          color = 0x62c1cc)
+                          color=0x62c1cc)
     # embed.set_thumbnail(file='Thumbnail/KakaoTalk_Photo_2023-01-06-16-36-02.png')
     embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
     await ctx.channel.send(embed=embed)
