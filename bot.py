@@ -16,7 +16,7 @@ from collections import OrderedDict
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GnqPXo.7fsp1XE-SqiiizYAlFRWALyjsQx2l7E5KG9zOc"
+token = "token"
 
 
 @bot.event
@@ -505,21 +505,30 @@ async def 내부텟(ctx):
     with open(file_path, 'w') as f:
         json.dump(df, f, indent=2, ensure_ascii=False)
 
+
 @bot.command()
 async def 친선(ctx, *input):
-
     for i in input:
         print(i)
+        id = 0
         file_path = "User.json"
 
         with open(file_path) as f:
             df = json.load(f)
 
-        for index , (key, elem) in enumerate(df.items()):
+        for index, (key, elem) in enumerate(df.items()):
             print(elem['nickname'])
             print(index, key, elem)
-            if(i == elem['nickname']) :
-                print(key)
+            if (i == elem['nickname']):
+                id = key
+        if id == 0:
+            await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
+        else:
+            df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 2000
+            await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
+
+        with open(file_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
 
 
 @bot.command()
