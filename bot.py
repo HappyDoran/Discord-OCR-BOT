@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G8m9Rh.e8lBNW_nPQQmCDhc-in3Kjge2SaQrp4RDZx9Is"
+token = "token"
 
 
 @bot.event
@@ -556,9 +556,10 @@ async def 개인(ctx, *input):
                                   color=0x62c1cc)
             embed.set_image(url=url)
             # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
-            await ctx.channel.send(embed=embed)
             view = Menu()
-            await ctx.send(view=view)
+            await ctx.channel.send(embed=embed, view=view)
+            #print(id)
+            # await ctx.send(view=view)
 
 
 class Menu(discord.ui.View):
@@ -566,9 +567,10 @@ class Menu(discord.ui.View):
         super().__init__()
         self.value = None
 
-    @discord.ui.button(label="hello", style=discord.ButtonStyle.blurple)
-    async def menu1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        print("버튼 눌림")
+    @discord.ui.button(label="확인", style=discord.ButtonStyle.blurple)
+    async def menu1(self, interaction: discord.Interaction, button: discord.ui.Button,):
+        #print("{0}".format(id))
+        print(interaction.user)
         await interaction.response.send_message("Button click")
 
 
