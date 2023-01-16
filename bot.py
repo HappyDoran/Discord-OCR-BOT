@@ -550,28 +550,32 @@ async def 개인(ctx, *input):
         print("Error: No attachments")
         await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
     else:
+        await ctx.message.delete()
         if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
             embed = discord.Embed(title='🫰{0} 개인 은하스쿨 '.format(nick),
                                   # description="{0}".format(input),
                                   color=0x62c1cc)
             embed.set_image(url=url)
             # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
-            view = Clear()
-            # print("view.menu" + view.menu1)
+            view = Clear(id)
+            # print(view.id)
             await ctx.channel.send(embed=embed, view=view)
             # print(menu1)
             # await ctx.send(view=view)
 
 
 class Clear(discord.ui.View):
-    def __init__(self):
+    def __init__(self, id):
         super().__init__()
-        self.value = None
+        # self.value = None
+        self.id = id
 
     @discord.ui.button(label="확인", style=discord.ButtonStyle.blurple)
-    async def menu1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        print("버튼 누른 사람의 디스코드 고유 번호 : " +  str(interaction.user.id))
+    async def menu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        print("버튼 누른 사람의 디스코드 고유 번호 : " + str(interaction.user.id))
+        print("숙제를 완료한 사람의 디스코드 고유 번호 : " + str(self.id))
         await interaction.response.send_message("Button click")
+
 
 @bot.command()
 async def 이개인(ctx, *input):
@@ -615,8 +619,6 @@ async def 이개인(ctx, *input):
 
             except:
                 pass
-
-
 
 
 @bot.command()
