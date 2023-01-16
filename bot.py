@@ -1,4 +1,5 @@
 import discord
+import interactions
 from discord.ext import commands
 import uuid
 import requests
@@ -16,7 +17,8 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G8m9Rh.e8lBNW_nPQQmCDhc-in3Kjge2SaQrp4RDZx9Is"
+
 
 @bot.event
 async def on_ready():
@@ -555,24 +557,25 @@ async def 개인(ctx, *input):
             embed.set_image(url=url)
             # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
             await ctx.channel.send(embed=embed)
-            await buttons.send(
-                # content="아래쪽 버튼을 눌러주세요.",
-                channel=ctx.channel.id,
-                components=[
-                    ActionRow([
-                        Button(
-                            label="은하스쿨 달성 완료!",
-                            style=ButtonType().Primary,
-                            custom_id="button_one"
-                        )
-                    ])
-                ]
-            )
+            view = Menu()
+            await ctx.send(view=view)
 
 
-@buttons.click
-async def button_one(ctx):
-    await ctx.channel.send("버튼이 눌렸습니다.")
+class Menu(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.value = None
+
+    @discord.ui.button(label="hello", style=discord.ButtonStyle.blurple)
+    async def menu1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        print("버튼 눌림")
+        await interaction.response.send_message("Button click")
+
+
+@bot.command()
+async def menu(ctx):
+    view = Menu()
+    await ctx.reply(view=view)
 
 
 @bot.command()
