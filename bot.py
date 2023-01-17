@@ -558,6 +558,7 @@ async def 개인(ctx, *input):
             embed.set_image(url=url)
             # embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
             view = Clear(id)
+
             # print(view.id)
             await ctx.channel.send(embed=embed, view=view)
             # print(menu1)
@@ -619,6 +620,38 @@ async def 이개인(ctx, *input):
 
             except:
                 pass
+
+@bot.command()
+async def 친선기록(ctx, *input):
+    import re
+    rMonth = re.compile('(?P<month>\d+)월')
+    rDate = re.compile('(?P<date>\d+)일')
+    rTime = re.compile('(?P<time>\d+)시')
+    rWho = re.compile('vs(?P<who>\w+)')
+
+    for i in input :
+        #print(i)
+        try:
+            reg = rMonth.search(i)
+            tMonth = reg.group('month')
+            print(tMonth)
+        except : pass
+        try:
+            reg = rDate.search(i)
+            tDate = reg.group('date')
+            print(tDate)
+        except : pass
+        try:
+            reg = rTime.search(i)
+            tTime = reg.group('time')
+            print(tTime)
+        except : pass
+        try:
+            reg = rWho.search(i)
+            tWho = reg.group('who')
+            print(tWho)
+        except : pass
+
 
 
 @bot.command()
