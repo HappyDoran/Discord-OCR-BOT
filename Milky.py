@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GyDoxk.-g7hLf69H-vYFKlMJiBGtEnE49XRhm2E8-TPF8"
+token = "token"
 
 
 @bot.event
@@ -300,6 +300,7 @@ async def update(ctx, *input):
         else:
             i = 6
 
+        print(i)
         if i == 6:
             await ctx.channel.send("유효하지 않은 군입니다. 다시 입력 부탁드립니다.")
         else:
