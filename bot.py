@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "token"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.G9cu_b.yOQQUVsW9UD7tt7W2f4z3m_f2Hj93QMfZ3xHdM"
 
 
 @bot.event
@@ -630,27 +630,33 @@ async def 친선기록(ctx, *input):
     rWho = re.compile('vs(?P<who>\w+)')
 
     for i in input :
-        #print(i)
-        try:
-            reg = rMonth.search(i)
-            tMonth = reg.group('month')
-            print(tMonth)
-        except : pass
-        try:
-            reg = rDate.search(i)
-            tDate = reg.group('date')
-            print(tDate)
-        except : pass
-        try:
-            reg = rTime.search(i)
-            tTime = reg.group('time')
-            print(tTime)
-        except : pass
-        try:
-            reg = rWho.search(i)
-            tWho = reg.group('who')
-            print(tWho)
-        except : pass
+        if(rMonth.search(i) or rDate.search(i) or rTime.search(i) or rWho.search(i)) :
+            try:
+                reg = rMonth.search(i)
+                tMonth = reg.group('month')
+                print(tMonth)
+            except:
+                pass
+            try:
+                reg = rDate.search(i)
+                tDate = reg.group('date')
+                print(tDate)
+            except:
+                pass
+            try:
+                reg = rTime.search(i)
+                tTime = reg.group('time')
+                print(tTime)
+            except:
+                pass
+            try:
+                reg = rWho.search(i)
+                tWho = reg.group('who')
+                print(tWho)
+            except:
+                pass
+        else :
+            print(i)
 
 
 
