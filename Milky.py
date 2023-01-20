@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "token"
+token = "TOKEN"
 
 
 @bot.event
