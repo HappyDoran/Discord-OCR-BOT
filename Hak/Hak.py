@@ -1,8 +1,6 @@
 import discord
-import interactions
 from discord.ext import commands
 import uuid
-import requests
 import shutil
 from pathlib import Path
 import pytesseract
@@ -13,11 +11,12 @@ import csv
 from difflib import SequenceMatcher
 import json
 from discord_buttons_plugin import *
+from DB import *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="~", intents=intents)
 buttons = ButtonsClient(bot)
-token = ""
+token = "MTA2NDEyODQ3NzUwODQwNzQyNg.GMk-vh.sWJju-oOAea0nTkJHZLhPpCyoRGtxOokwekdCs"
 
 
 @bot.event
@@ -32,6 +31,14 @@ async def on_message(msg):
     if msg.author.bot: return None
     await bot.process_commands(msg)
 
+
+@bot.command()
+async def Test(ctx):
+    conn, cur = util.connection.getConnection()
+    sql = f"SELECT * FROM user WHERE did =%s"
+    cur.execute(sql, ctx.message.author.id)
+    rs = cur.fetchone()
+    print(rs)
 
 @bot.command()
 async def 등록(ctx):
