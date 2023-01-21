@@ -34,8 +34,8 @@ async def on_message(msg):
 
 @bot.command()
 async def 출석(ctx):
-    #conn, cur = util.connection.getConnection()
-    conn,cur = connection.getConnection()
+    # conn, cur = util.connection.getConnection()
+    conn, cur = connection.getConnection()
     sql = "SELECT * FROM dailyCheck WHERE did=%s"
     cur.execute(sql, ctx.message.author.id)
     rs = cur.fetchone()
@@ -62,52 +62,199 @@ async def 출석(ctx):
 
 
 @bot.command()
+async def 테스트(ctx, *input):
+    import re
+    rMonth = re.compile('(?P<month>\d+)월')
+    rDate = re.compile('(?P<date>\d+)일')
+    rTime = re.compile('(?P<time>\d+)시')
+    rWho = re.compile('vs\s(?P<who>\w+)')
+
+    des = ' '.join(list(input))
+    reg = rWho.search(des)
+    tWho = reg.group('who')
+    print(tWho)
+
+    member = []
+    flag = 0
+
+    # file_path = "data.json"
+    #
+    # with open(file_path) as f:
+    #     df = json.load(f)
+
+    for i in input:
+        id = 0
+        if (rMonth.search(i) or rDate.search(i) or rTime.search(i)):
+            try:
+                reg = rMonth.search(i)
+                tMonth = reg.group('month')
+                print(tMonth)
+            except:
+                pass
+            try:
+                reg = rDate.search(i)
+                tDate = reg.group('date')
+                print(tDate)
+            except:
+                pass
+            try:
+                reg = rTime.search(i)
+                tTime = reg.group('time')
+                print(tTime)
+            except:
+                pass
+        else:
+            if i == 'vs' or i == tWho:
+                continue
+            else:
+                conn, cur = connection.getConnection()
+                sql = "SELECT * FROM user WHERE name=%s"
+                cur.execute(sql, i)
+                rs = cur.fetchone()
+                print(rs)
+                if rs is None:
+                    await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
+                else:
+                    member.append(i)
+    if len(member) is 4:
+        for i in member:
+            sql = "UPDATE user SET cnt = %s WHERE name = %s"
+            cur.execute(sql, (rs['cnt'] + 1, i))
+            conn.commit()
+            await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, rs['cnt'] + 1))
+
+            print(tMonth + tDate + tTime)
+            print(tWho)
+            print(member)
+
+            try:
+                url = ctx.message.attachments[0].url
+            except IndexError:
+                embed = discord.Embed(title='🫰친선 임베드 ',
+                                      description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                                  "\n**VS**\n{3}\n"
+                                                  "\n**멤버**\n{4} {5} {6} {7}\n"
+                                                  "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
+                                                                         member[0],
+                                                                         member[1], member[2], member[3]),
+
+                                      color=0x62c1cc)
+                await ctx.message.delete()
+                await ctx.channel.send(embed=embed)
+            else:
+                if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+                    embed = discord.Embed(title='🫰친선 임베드 ',
+                                          description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                                      "\n**VS**\n{3}\n"
+                                                      "\n**멤버**\n{4} {5} {6} {7}\n"
+                                                      "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
+                                                                             member[0],
+                                                                             member[1], member[2], member[3]),
+                                          color=0x62c1cc)
+                    embed.set_image(url=url)
+                    await ctx.message.delete()
+                    await ctx.channel.send(embed=embed)
+    else:
+        print("인원 부족")
+
+#
+#     record_path = "Record.json"
+#
+#     with open(record_path) as f:
+#         df = json.load(f)
+#         print(df)
+#         # print("hello")
+#
+#     if not df:
+#         df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
+#             'vs': tWho,
+#             'member': member,
+#         }
+#         print(df)
+#         await ctx.channel.send("친선기록 저장 완료!")
+#
+#     else:
+#         df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
+#             'vs': tWho,
+#             'member': member,
+#         }
+#     print(df)
+#
+#     with open(record_path, 'w') as f:
+#         json.dump(df, f, indent=2, ensure_ascii=False)
+#
+# else:
+#     print("1")
+
+
+@bot.command()
 async def 등록(ctx):
     id = ctx.message.author.id
     nick = ctx.message.author.nick
     if not nick:
         nick = ctx.message.author.name
 
-    file_path = "data.json"
+    # file_path = "data.json"
+    #
+    # with open(file_path) as f:
+    #     df = json.load(f)
+    #     # print(df)
+    #
+    # if not df:
+    #     df['{0}'.format(id)] = {
+    #         'nickname': nick,
+    #         'cnt': 0,
+    #     }
+    #     # print(df)
+    #     await ctx.message.delete()
+    #     await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
+    #
+    # else:
+    #     # print(df)
+    #     if df.get('{0}'.format(id)) == None:
+    #
+    #         df['{0}'.format(id)] = {
+    #             'nickname': nick,
+    #             'cnt': 0,
+    #         }
+    #         # print(df)
+    #         await ctx.message.delete()
+    #         await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
+    #
+    #     else:
+    #         # df['{0}'.format(id)]['tier'] = i
+    #         # print(df)
+    #         if df.get('{0}'.format(id))['nickname'] != nick:
+    #             df.get('{0}'.format(id))['nickname'] = nick
+    #             await ctx.message.delete()
+    #             await ctx.channel.send("닉네임이 수정되었습니다.")
+    #         else:
+    #             await ctx.message.delete()
+    #             await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
+    #
+    # with open(file_path, 'w') as f:
+    #     json.dump(df, f, indent=2, ensure_ascii=False)
 
-    with open(file_path) as f:
-        df = json.load(f)
-        # print(df)
+    conn, cur = connection.getConnection()
+    sql = "SELECT * FROM user WHERE did=%s"
+    cur.execute(sql, id)
+    rs = cur.fetchone()
+    print(rs)
 
-    if not df:
-        df['{0}'.format(id)] = {
-            'nickname': nick,
-            'cnt': 0,
-        }
-        # print(df)
-        await ctx.message.delete()
+    # 처음 등록을 하는 경우
+    if rs is None:
+        # print("flag")
+        sql = "INSERT INTO user (did, name, cnt) values (%s, %s, %s)"
+        cur.execute(sql, (id, nick, 0))
+        conn.commit()
         await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
 
+    # 이미 등록이 되있는 경우에는 등록이 되지 않음.
     else:
-        # print(df)
-        if df.get('{0}'.format(id)) == None:
-
-            df['{0}'.format(id)] = {
-                'nickname': nick,
-                'cnt': 0,
-            }
-            # print(df)
-            await ctx.message.delete()
-            await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
-
-        else:
-            # df['{0}'.format(id)]['tier'] = i
-            # print(df)
-            if df.get('{0}'.format(id))['nickname'] != nick:
-                df.get('{0}'.format(id))['nickname'] = nick
-                await ctx.message.delete()
-                await ctx.channel.send("닉네임이 수정되었습니다.")
-            else:
-                await ctx.message.delete()
-                await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
-
-    with open(file_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
+        # sql = "UPDATE user SET name = %s WHERE did = %s"
+        # cur.execute(sql, (nick, id))
+        # conn.commit()
+        await ctx.channel.send("이미 등록 되어 있는 사용자입니다.")
 
 
 @bot.command()
