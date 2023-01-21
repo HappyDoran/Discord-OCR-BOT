@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GQHa_r.2ZpGlF_2AWG1Iibm2ZyyNaMU5ebayne4EniBKo"
+token = "MTA2MDgyMzY1ODgzMjA3NjgzMA.GEH-1O.CefbgLNjmzYpv4of8QwHcrMEWOlPXruhm0WFY8"
 
 
 @bot.event
@@ -159,7 +159,7 @@ async def file(ctx):
     if not nick:
         nick = ctx.message.author.name
 
-    file_path = "/Milky/User.json"
+    file_path = "User.json"
 
     with open(file_path) as f:
         df = json.load(f)
@@ -188,7 +188,7 @@ async def file(ctx):
     with open(file_path, 'w') as f:
         json.dump(df, f, indent=2, ensure_ascii=False)
 
-#수정 요망
+
 @bot.command()
 async def register(ctx, *input):
     id = ctx.message.author.id
@@ -265,7 +265,7 @@ async def register(ctx, *input):
             except:
                 pass
 
-#수정 요망
+
 @bot.command()
 async def update(ctx, *input):
     id = ctx.message.author.id
@@ -341,7 +341,7 @@ async def update(ctx, *input):
             except:
                 pass
 
-#수정 요망
+
 @bot.command()
 async def 공통(ctx):
     id = ctx.message.author.id
@@ -469,7 +469,7 @@ async def 공통(ctx):
                     with open(file_path, 'w') as f:
                         json.dump(df, f, indent=2, ensure_ascii=False)
 
-#수정 요망
+
 @bot.command()
 async def 내부텟(ctx):
     id = ctx.message.author.id

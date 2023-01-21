@@ -10,13 +10,14 @@ import re
 import csv
 from difflib import SequenceMatcher
 import json
+import numpy
 from discord_buttons_plugin import *
 from DB import *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="~", intents=intents)
 buttons = ButtonsClient(bot)
-token = "MTA2NDEyODQ3NzUwODQwNzQyNg.GMk-vh.sWJju-oOAea0nTkJHZLhPpCyoRGtxOokwekdCs"
+token = "MTA2NDEyODQ3NzUwODQwNzQyNg.GzaE9j.O3nYg9GXXvtx8ua7PEEkiYNeIKWlJcvYY221_M"
 
 
 @bot.event
@@ -33,12 +34,34 @@ async def on_message(msg):
 
 
 @bot.command()
-async def Test(ctx):
+async def 출석(ctx):
+    print("flag1")
     conn, cur = util.connection.getConnection()
-    sql = f"SELECT * FROM user WHERE did =%s"
+    print("flag2")
+    sql = "SELECT * FROM dailyCheck WHERE did=%s"
     cur.execute(sql, ctx.message.author.id)
     rs = cur.fetchone()
     print(rs)
+    from datetime import datetime
+
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    if rs is not None and str(rs.get('date')) == today:
+        await ctx.message.delete()
+        await ctx.channel.send(f'> {ctx.message.author.display_name}님은 이미 출석체크를 했어요')
+        return
+
+    # 처음 등록을 하는 경우
+    if rs is None:
+        sql = "INSERT INTO dailyCheck (did,count,date) values (%s, %s, %s)"
+        cur.execute(sql, (id, 1, today))
+        conn.commit()
+    else:
+        sql = "UPDATE dailyCheck SET count = %s, date = %s WHERE did = %s"
+        cur.execute(sql, (rs['count'] + 1, today, id))
+        conn.commit()
+    await ctx.channel.send("기입 완료")
+
 
 @bot.command()
 async def 등록(ctx):
