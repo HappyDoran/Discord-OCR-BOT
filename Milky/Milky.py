@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 buttons = ButtonsClient(bot)
-token = "TOKEN"
+token = ""
 
 
 @bot.event
@@ -159,7 +159,7 @@ async def file(ctx):
     if not nick:
         nick = ctx.message.author.name
 
-    file_path = "User.json"
+    file_path = "/Milky/User.json"
 
     with open(file_path) as f:
         df = json.load(f)
@@ -188,7 +188,7 @@ async def file(ctx):
     with open(file_path, 'w') as f:
         json.dump(df, f, indent=2, ensure_ascii=False)
 
-
+#수정 요망
 @bot.command()
 async def register(ctx, *input):
     id = ctx.message.author.id
@@ -251,13 +251,13 @@ async def register(ctx, *input):
                         await ctx.channel.send("정보 저장 완료!")
 
                     else:
-                        # df['{0}'.format(id)]['tier'] = i
+                        df['{0}'.format(id)]['tier'] = i
                         print(df)
-                        # if df.get('{0}'.format(id))['nickname'] != nick:
-                        #     df.get('{0}'.format(id))['nickname'] = nick
-                        #     await ctx.channel.send("닉네임이 수정되었습니다.")
-                        # else:
-                        await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
+                        if df.get('{0}'.format(id))['nickname'] != nick:
+                            df.get('{0}'.format(id))['nickname'] = nick
+                            await ctx.channel.send("닉네임이 수정되었습니다.")
+                        else:
+                            await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
 
                 with open(file_path, 'w') as f:
                     json.dump(df, f, indent=2, ensure_ascii=False)
@@ -265,7 +265,7 @@ async def register(ctx, *input):
             except:
                 pass
 
-
+#수정 요망
 @bot.command()
 async def update(ctx, *input):
     id = ctx.message.author.id
@@ -341,7 +341,7 @@ async def update(ctx, *input):
             except:
                 pass
 
-
+#수정 요망
 @bot.command()
 async def 공통(ctx):
     id = ctx.message.author.id
@@ -469,7 +469,7 @@ async def 공통(ctx):
                     with open(file_path, 'w') as f:
                         json.dump(df, f, indent=2, ensure_ascii=False)
 
-
+#수정 요망
 @bot.command()
 async def 내부텟(ctx):
     id = ctx.message.author.id

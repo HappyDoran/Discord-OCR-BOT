@@ -17,7 +17,7 @@ from discord_buttons_plugin import *
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="~", intents=intents)
 buttons = ButtonsClient(bot)
-token = "token"
+token = ""
 
 
 @bot.event
@@ -272,7 +272,7 @@ async def save(ctx):
 
                 # 맵 이름 비교후 일치율 비교
 
-                f = open('mapp.csv', 'r', encoding='UTF-8')
+                f = open('../Milky/mapp.csv', 'r', encoding='UTF-8')
                 rdr = csv.reader(f)
                 for line in rdr:
                     # print("{0} {1}".format(line[0],SequenceMatcher(None, map, line[0]).ratio()))
@@ -319,7 +319,7 @@ async def save(ctx):
 
 
 @bot.command()
-async def 달친선(ctx):
+async def 이번달(ctx):
     id = ctx.message.author.id
     nick = ctx.message.author.nick
     if not nick:
