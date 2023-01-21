@@ -8,7 +8,7 @@ class Connection:
         self.pw = '3860'
         self.db = 'Haccrew'
         self.conn = pymysql.connect(host=self.host, user=self.user, password=self.pw, database=self.db, charset="utf8")
-        self.cur = self.conn.cursor()
+        self.cur = self.conn.cursor(pymysql.cursors.DictCursor)
         print("[알림] DB Connect")
 
     def __del__(self):
