@@ -138,7 +138,7 @@ async def 친선기록(ctx, *input):
                     await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
                 else:
                     member.append(i)
-    if len(member) is 4:
+    if len(member) == 4:
         for i in member:
             sql = "UPDATE user SET cnt = %s WHERE name = %s"
             cur.execute(sql, (rs['cnt'] + 1, i))
@@ -208,6 +208,7 @@ async def 횟수(ctx):
     else:
         await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(ctx.message.author.mention, rs['cnt']))
 
+
 @bot.command()
 async def 닉변(ctx, input):
     id = ctx.message.author.id
@@ -225,6 +226,7 @@ async def 닉변(ctx, input):
         cur.execute(sql, (input, id))
         conn.commit()
         await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
+
 
 @bot.command()
 async def save(ctx):
