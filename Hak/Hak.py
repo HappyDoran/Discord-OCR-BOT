@@ -32,9 +32,25 @@ async def on_message(msg):
 
 
 @bot.command()
+async def 테스트(ctx, *input):
+    record_path = "data.json"
+
+    with open(record_path) as f:
+        df = json.load(f)
+
+    for i in input:
+        print(i)
+        for index, (key, elem) in enumerate(df.items()):
+            print(index, key, elem)
+            if i == elem['nickname'] or i == elem['subnickname']:
+                print("힝")
+
+
+@bot.command()
 async def 등록(ctx):
     id = ctx.message.author.id
     nick = ctx.message.author.nick
+    subnick = ctx.message.author.mention
     if not nick:
         nick = ctx.message.author.name
 
@@ -47,6 +63,7 @@ async def 등록(ctx):
     if not df:
         df['{0}'.format(id)] = {
             'nickname': nick,
+            'subnickname': subnick,
             'cnt': 0,
         }
         # print(df)
@@ -59,6 +76,7 @@ async def 등록(ctx):
 
             df['{0}'.format(id)] = {
                 'nickname': nick,
+                'subnickname': subnick,
                 'cnt': 0,
             }
             # print(df)
@@ -73,6 +91,7 @@ async def 등록(ctx):
             #     await ctx.message.delete()
             #     await ctx.channel.send("닉네임이 수정되었습니다.")
             # else:
+            df.get('{0}'.format(id))['subnickname'] = subnick
             await ctx.message.delete()
             await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
 
@@ -103,6 +122,7 @@ async def 친선기록(ctx, *input):
 
     for i in input:
         id = 0
+        opt = 0
         if (rMonth.search(i) or rDate.search(i) or rTime.search(i)):
             try:
                 reg = rMonth.search(i)
@@ -129,21 +149,30 @@ async def 친선기록(ctx, *input):
                 for index, (key, elem) in enumerate(df.items()):
                     # print(elem['nickname'])
                     # print(index, key, elem)
-                    if (i == elem['nickname']):
+                    # print(i)
+                    if i == elem['nickname']:
                         id = key
+                        opt = 1
+                    elif i == elem['subnickname']:
+                        id = key
+                        opt = 2
                 if id == 0:
                     await ctx.message.delete()
                     await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
                 else:
-                    member.append(i)
-                    member_did.append(id)
+                    if opt == 1 :
+                        member.append(i)
+                        member_did.append(id)
+                    elif opt == 2 :
+                        member.append(df.get('{0}'.format(id))['nickname'])
+                        member_did.append(id)
                     # df.get('{0}'.format(id))['cnt'] = df.get('{0}'.format(id))['cnt'] + 1
                     # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, df.get('{0}'.format(id))['cnt']))
 
     if len(member) == 4:
         for i in range(len(member)):
             df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
-            await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
+            # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
     else:
         print("인원이 부족합니다")
 
@@ -160,7 +189,7 @@ async def 친선기록(ctx, *input):
 
         with open(record_path) as f:
             df = json.load(f)
-            print(df)
+            # print(df)
             # print("hello")
 
         if not df:
@@ -274,6 +303,7 @@ async def 닉변(ctx, input):
     else:
         df.get('{0}'.format(id))['nickname'] = nick
         await ctx.message.delete()
+        print(input)
         await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
 
 
