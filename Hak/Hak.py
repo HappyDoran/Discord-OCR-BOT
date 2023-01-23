@@ -11,6 +11,9 @@ import csv
 from difflib import SequenceMatcher
 import json
 from discord_buttons_plugin import *
+import schedule
+import time
+from datetime import date
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="~", intents=intents)
@@ -24,26 +27,48 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('떼햄이랑 파스타 먹기'))
     print('[알림]학 봇 "ON"')
 
+    # def clean():
+    #     if date.today().day == 1:
+    #         file_path = "data.json"
+    #         destination = "last_month_data.json"
+    #         with open(file_path) as f:
+    #             df = json.load(f)
+    #
+    #         shutil.copyfile(file_path, destination)
+    #
+    #         for index, (key, elem) in enumerate(df.items()):
+    #             elem['cnt'] = 0
+    #
+    #         with open(file_path, 'w') as f:
+    #             json.dump(df, f, indent=2, ensure_ascii=False)
+    #
+    #         print("유저 친선 횟수 초기화")
+    #
+    #         record_path = "record.json"
+    #         destination = "last_month_record.json"
+    #
+    #         with open(record_path) as f:
+    #             df = json.load(f)
+    #
+    #         shutil.copyfile(record_path, destination)
+    #
+    #         df = {}
+    #
+    #         with open(record_path, 'w') as f:
+    #             json.dump(df, f, indent=2, ensure_ascii=False)
+    #
+    #         print("한달 기록 초기화")
+    #
+    # schedule.every(1).days.do(clean)
+    #
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(3000)
 
 @bot.event
 async def on_message(msg):
     if msg.author.bot: return None
     await bot.process_commands(msg)
-
-
-@bot.command()
-async def 테스트(ctx, *input):
-    record_path = "data.json"
-
-    with open(record_path) as f:
-        df = json.load(f)
-
-    for i in input:
-        print(i)
-        for index, (key, elem) in enumerate(df.items()):
-            print(index, key, elem)
-            if i == elem['nickname'] or i == elem['subnickname']:
-                print("힝")
 
 
 @bot.command()
@@ -110,7 +135,7 @@ async def 친선기록(ctx, *input):
     des = ' '.join(list(input))
     reg = rWho.search(des)
     tWho = reg.group('who')
-    print(tWho)
+    # print(tWho)
 
     member = []
     member_did = []
@@ -127,19 +152,19 @@ async def 친선기록(ctx, *input):
             try:
                 reg = rMonth.search(i)
                 tMonth = reg.group('month')
-                print(tMonth)
+                # print(tMonth)
             except:
                 pass
             try:
                 reg = rDate.search(i)
                 tDate = reg.group('date')
-                print(tDate)
+                # print(tDate)
             except:
                 pass
             try:
                 reg = rTime.search(i)
                 tTime = reg.group('time')
-                print(tTime)
+                # print(tTime)
             except:
                 pass
         else:
@@ -160,10 +185,10 @@ async def 친선기록(ctx, *input):
                     await ctx.message.delete()
                     await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
                 else:
-                    if opt == 1 :
+                    if opt == 1:
                         member.append(i)
                         member_did.append(id)
-                    elif opt == 2 :
+                    elif opt == 2:
                         member.append(df.get('{0}'.format(id))['nickname'])
                         member_did.append(id)
                     # df.get('{0}'.format(id))['cnt'] = df.get('{0}'.format(id))['cnt'] + 1
@@ -174,14 +199,15 @@ async def 친선기록(ctx, *input):
             df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
             # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
     else:
-        print("인원이 부족합니다")
+        # print("인원이 부족합니다")
+        await ctx.channel.send("인원이 부족합니다! 4명을 입력해주세요!")
 
     with open(file_path, 'w') as f:
         json.dump(df, f, indent=2, ensure_ascii=False)
 
-    print(tMonth + tDate + tTime)
-    print(tWho)
-    print(member)
+    # print(tMonth + tDate + tTime)
+    # print(tWho)
+    # print(member)
 
     if len(member) == 4:
 
@@ -198,7 +224,7 @@ async def 친선기록(ctx, *input):
                 'member': member,
             }
             # print(df)
-            await ctx.channel.send("친선기록 저장 완료!")
+            # await ctx.channel.send("친선기록 저장 완료!")
 
         else:
             df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
@@ -258,12 +284,12 @@ async def 이번달(ctx):
     id = ctx.message.author.id
     guild = ctx.message.guild
     member = guild.get_member(id)
-    nick = ctx.message.author.nick
-    if not nick:
-        nick = ctx.message.author.name
+    # nick = ctx.message.author.nick
+    # if not nick:
+    # nick = ctx.message.author.name
 
     permission = 0
-    print(member.roles)
+    # print(member.roles)
     try:
         for role in member.roles:
             if permission < role.position:
@@ -272,7 +298,7 @@ async def 이번달(ctx):
     except:
         pass
 
-    print(permission)
+    # print(permission)
     file_path = "data.json"
 
     if permission >= 9 or guild.owner_id == id:
@@ -301,10 +327,60 @@ async def 닉변(ctx, input):
     if df.get('{0}'.format(id)) == None:
         await ctx.channel.send("등록되어 있지 않은 사용자입니다!")
     else:
-        df.get('{0}'.format(id))['nickname'] = nick
+        # print(df.get('{0}'.format(id))['nickname'])
+        df.get('{0}'.format(id))['nickname'] = input
+        # print(nick)
+        # print(input)
+
         await ctx.message.delete()
-        print(input)
         await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
+
+
+@bot.command()
+async def 초기화(ctx):
+    id = ctx.message.author.id
+    guild = ctx.message.guild
+
+    file_path = "data.json"
+    destination = "last_month_data.json"
+
+    print(guild.owner_id)
+
+    if guild.owner_id == id:
+        with open(file_path) as f:
+            df = json.load(f)
+
+        shutil.copyfile(file_path, destination)
+
+        for index, (key, elem) in enumerate(df.items()):
+            elem['cnt'] = 0
+
+        await ctx.channel.send("유저 친선 횟수 초기화")
+
+    else:
+        await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
+
+    record_path = "record.json"
+    destination = "last_month_record.json"
+
+    if guild.owner_id == id:
+        with open(record_path) as f:
+            df = json.load(f)
+
+        shutil.copyfile(record_path, destination)
+
+        df = {}
+
+        await ctx.channel.send("한달 기록 초기화")
+
+    with open(record_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
 
 
 @bot.command()
