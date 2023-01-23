@@ -11,7 +11,6 @@ import csv
 from difflib import SequenceMatcher
 import json
 from discord_buttons_plugin import *
-from DB import *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="~", intents=intents)
@@ -32,35 +31,6 @@ async def on_message(msg):
     await bot.process_commands(msg)
 
 
-# @bot.command()
-# async def 출석(ctx):
-#     # conn, cur = util.connection.getConnection()
-#     conn, cur = connection.getConnection()
-#     sql = "SELECT * FROM dailyCheck WHERE did=%s"
-#     cur.execute(sql, ctx.message.author.id)
-#     rs = cur.fetchone()
-#     print(rs)
-#     from datetime import datetime
-#
-#     today = datetime.now().strftime('%Y-%m-%d')
-#     if rs is not None and str(rs.get('date')) == today:
-#         await ctx.message.delete()
-#         await ctx.channel.send(f'> {ctx.message.author.display_name}님은 이미 출석체크를 했어요')
-#         return
-#
-#     # 처음 등록을 하는 경우
-#     if rs is None:
-#         print("flag")
-#         sql = "INSERT INTO dailyCheck (did, count, date) values (%s, %s, %s)"
-#         cur.execute(sql, (ctx.message.author.id, 1, today))
-#         conn.commit()
-#     else:
-#         sql = "UPDATE dailyCheck SET count = %s, date = %s WHERE did = %s"
-#         cur.execute(sql, (rs['count'] + 1, today, ctx.message.author.id))
-#         conn.commit()
-#     await ctx.channel.send("기입 완료")
-
-
 @bot.command()
 async def 등록(ctx):
     id = ctx.message.author.id
@@ -68,25 +38,46 @@ async def 등록(ctx):
     if not nick:
         nick = ctx.message.author.name
 
-    conn, cur = connection.getConnection()
-    sql = "SELECT * FROM user WHERE did=%s"
-    cur.execute(sql, id)
-    rs = cur.fetchone()
-    print(rs)
+    file_path = "data.json"
 
-    # 처음 등록을 하는 경우
-    if rs is None:
-        sql = "INSERT INTO user (did, name, cnt) values (%s, %s, %s)"
-        cur.execute(sql, (id, nick, 0))
-        conn.commit()
+    with open(file_path) as f:
+        df = json.load(f)
+        # print(df)
+
+    if not df:
+        df['{0}'.format(id)] = {
+            'nickname': nick,
+            'cnt': 0,
+        }
+        # print(df)
+        await ctx.message.delete()
         await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
 
-    # 이미 등록이 되있는 경우에는 등록이 되지 않음.
     else:
-        # sql = "UPDATE user SET name = %s WHERE did = %s"
-        # cur.execute(sql, (nick, id))
-        # conn.commit()
-        await ctx.channel.send("이미 등록 되어 있는 사용자입니다.")
+        # print(df)
+        if df.get('{0}'.format(id)) == None:
+
+            df['{0}'.format(id)] = {
+                'nickname': nick,
+                'cnt': 0,
+            }
+            # print(df)
+            await ctx.message.delete()
+            await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
+
+        else:
+            # df['{0}'.format(id)]['tier'] = i
+            # print(df)
+            # if df.get('{0}'.format(id))['nickname'] != nick:
+            #     df.get('{0}'.format(id))['nickname'] = nick
+            #     await ctx.message.delete()
+            #     await ctx.channel.send("닉네임이 수정되었습니다.")
+            # else:
+            await ctx.message.delete()
+            await ctx.channel.send("이미 저장되어 있는 사용자 입니다!")
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
 
 
 @bot.command()
@@ -103,8 +94,15 @@ async def 친선기록(ctx, *input):
     print(tWho)
 
     member = []
+    member_did = []
+
+    file_path = "data.json"
+
+    with open(file_path) as f:
+        df = json.load(f)
 
     for i in input:
+        id = 0
         if (rMonth.search(i) or rDate.search(i) or rTime.search(i)):
             try:
                 reg = rMonth.search(i)
@@ -128,38 +126,60 @@ async def 친선기록(ctx, *input):
             if i == 'vs' or i == tWho:
                 continue
             else:
-                conn, cur = connection.getConnection()
-                sql = "SELECT * FROM user WHERE name=%s"
-                cur.execute(sql, i)
-                rs = cur.fetchone()
-                print(rs)
-                if rs is None:
+                for index, (key, elem) in enumerate(df.items()):
+                    # print(elem['nickname'])
+                    # print(index, key, elem)
+                    if (i == elem['nickname']):
+                        id = key
+                if id == 0:
                     await ctx.message.delete()
                     await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
                 else:
                     member.append(i)
+                    member_did.append(id)
+                    # df.get('{0}'.format(id))['cnt'] = df.get('{0}'.format(id))['cnt'] + 1
+                    # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, df.get('{0}'.format(id))['cnt']))
+
     if len(member) == 4:
-        for i in member:
-            sql = "UPDATE user SET cnt = %s WHERE name = %s"
-            cur.execute(sql, (rs['cnt'] + 1, i))
-            conn.commit()
-            # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, rs['cnt'] + 1))
+        for i in range(len(member)):
+            df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
+            await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
     else:
-        print("인원이 부족합니다.")
+        print("인원이 부족합니다")
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
 
     print(tMonth + tDate + tTime)
     print(tWho)
     print(member)
 
-    if len(member) is 4:
-        from datetime import datetime
+    if len(member) == 4:
 
-        dt = '{0}.{1}.{2}.{3}:00'.format(datetime.today().year, tMonth, tDate, tTime)
-        print(dt)
-        sql = "INSERT INTO record (date, VS, mem1, mem2, mem3, mem4) values (%s, %s, %s, %s, %s, %s)"
-        cur.execute(sql, (dt, tWho, member[0], member[1], member[2], member[3]))
-        conn.commit()
-        await ctx.channel.send("친선기록 저장 완료!")
+        record_path = "Record.json"
+
+        with open(record_path) as f:
+            df = json.load(f)
+            print(df)
+            # print("hello")
+
+        if not df:
+            df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
+                'vs': tWho,
+                'member': member,
+            }
+            # print(df)
+            await ctx.channel.send("친선기록 저장 완료!")
+
+        else:
+            df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
+                'vs': tWho,
+                'member': member,
+            }
+        # print(df)
+
+        with open(record_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
 
         try:
             url = ctx.message.attachments[0].url
@@ -169,8 +189,7 @@ async def 친선기록(ctx, *input):
                                               "\n**VS**\n{3}\n"
                                               "\n**멤버**\n{4} {5} {6} {7}\n"
                                               "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-                                                                     member[0],
-                                                                     member[1], member[2], member[3]),
+                                                                     member[0], member[1], member[2], member[3]),
 
                                   color=0x62c1cc)
             await ctx.message.delete()
@@ -182,8 +201,7 @@ async def 친선기록(ctx, *input):
                                                   "\n**VS**\n{3}\n"
                                                   "\n**멤버**\n{4} {5} {6} {7}\n"
                                                   "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-                                                                         member[0],
-                                                                         member[1], member[2], member[3]),
+                                                                         member[0], member[1], member[2], member[3]),
                                       color=0x62c1cc)
                 embed.set_image(url=url)
                 await ctx.message.delete()
@@ -193,157 +211,54 @@ async def 친선기록(ctx, *input):
 @bot.command()
 async def 횟수(ctx):
     id = ctx.message.author.id
-    nick = ctx.message.author.nick
-    if not nick:
-        nick = ctx.message.author.name
 
-    conn, cur = connection.getConnection()
-    sql = "SELECT * FROM user WHERE did=%s"
-    cur.execute(sql, id)
-    rs = cur.fetchone()
-    print(rs)
+    file_path = "data.json"
 
-    if rs is None:
+    with open(file_path) as f:
+        df = json.load(f)
+
+    if df.get('{0}'.format(id)) == None:
         await ctx.channel.send("등록되어 있지 않은 사용자입니다!")
     else:
-        await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(ctx.message.author.mention, rs['cnt']))
-
-
-@bot.command()
-async def 닉변(ctx, input):
-    id = ctx.message.author.id
-
-    conn, cur = connection.getConnection()
-    sql = "SELECT * FROM user WHERE did=%s"
-    cur.execute(sql, id)
-    rs = cur.fetchone()
-    print(rs)
-
-    if rs is None:
-        await ctx.channel.send("등록되어 있지 않은 사용자입니다!")
-    else:
-        sql = "UPDATE user SET name = %s WHERE did = %s"
-        cur.execute(sql, (input, id))
-        conn.commit()
-        await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
-
-
-@bot.command()
-async def save(ctx):
-    # USAGE: use command .save in the comment box when uploading an image to save the image as a jpg
-    try:
-        url = ctx.message.attachments[0].url  # check for an image, call exception if none found
-    except IndexError:
-        print("Error: No attachments")
-        await ctx.send("사진을 올림과 동시에 명령어를 써주세요")
-    else:
-        if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
-            r = requests.get(url, stream=True)
-            imageName = str(Path.home() / "PycharmProjects" / "DiscordBot" / "Photo" / Path(
-                str(uuid.uuid4()) + '.jpg'))  # uuid creates random unique id to use for image names
-            with open(imageName, 'wb') as out_file:
-                print('Saving image : ' + imageName)
-                # print(out_file)
-                # print(r.raw)
-                shutil.copyfileobj(r.raw, out_file)  # save image (goes to project directory)
-
-                # time.sleep(10)
-
-                image = cv2.imread(imageName)
-
-                h, w, c = image.shape
-                output = image[int(0.3 * h): int(0.53 * h), int(0.7 * w): int(0.92 * w)]
-                # output = image
-
-                rgb_image = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
-
-                # use Tesseract to OCR the image
-                text = pytesseract.image_to_string(rgb_image, lang='kor')
-                # print(text)
-
-                # 띄어쓰기로 문자열 분할 후 공백문자열 삭제
-                l = text.split('\n')
-                l = list(filter(None, l))
-                print(l)
-
-                # 키워드 "기록"으로 문자열 인덱스 추출
-                find_keyword = '기록'
-                index = [i for i in range(len(l)) if find_keyword in l[i]]
-
-                # 키워드 "기록"으로 인식된 문자열이 있을 경우에는
-                if index:
-                    index = index[0]
-
-                # 키워드 검색 결과가 없을 경우에는 "주간 최고 기록" 이라는 문자열과 일치도를 조사
-                else:
-                    for i in l:
-                        if SequenceMatcher(None, "주간 최고 기록", i).ratio() > 0.5:
-                            index = l.index(i)
-
-                map = l[index - 1]
-                map = map.replace(" ", "")
-                print("인식한 맵 이름 : " + map)
-                rc = re.sub(r"[^0-9]", "", l[index + 1])
-                record = re.sub(r'(.{2})', r':\1', rc)[1:]
-                print("인식한 기록 : " + record)
-                compare_record = int(record.replace(":", ""))
-                print(compare_record)
-
-                if os.path.exists(imageName):
-                    os.remove(imageName)
-
-                max_match_rate = 0
-
-                # 맵 이름 비교후 일치율 비교
-
-                f = open('../Milky/mapp.csv', 'r', encoding='UTF-8')
-                rdr = csv.reader(f)
-                for line in rdr:
-                    # print("{0} {1}".format(line[0],SequenceMatcher(None, map, line[0]).ratio()))
-                    if SequenceMatcher(None, map, line[1]).ratio() > max_match_rate:
-                        max_match_rate = SequenceMatcher(None, map, line[1]).ratio()
-                        real_map = line[1]
-                        rec_list = line
-
-                for i in range(2, 7):
-                    rec_list[i] = int(rec_list[i])
-
-                print(rec_list)
-
-                # 노가다
-                if compare_record <= rec_list[2]:
-                    tier = "강주력"
-                elif compare_record > rec_list[2] and compare_record <= rec_list[3]:
-                    tier = "주력"
-                elif compare_record > rec_list[3] and compare_record <= rec_list[4]:
-                    tier = "1군"
-                elif compare_record > rec_list[4] and compare_record <= rec_list[5]:
-                    tier = "2군"
-                elif compare_record > rec_list[5] and compare_record <= rec_list[6]:
-                    tier = "3군"
-                else:
-                    tier = "의견 없음"
-
-                f.close()
-
-                real_map = real_map.replace("//", "[R]")
-                print("실제 맵 이름 : " + real_map)
-                if ctx.message.author.nick:
-                    await ctx.channel.send(
-                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
-                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map, record,
-                                                                                     ctx.message.author.nick, tier)
-                    )
-                else:
-                    await ctx.channel.send(
-                        # "인식한 맵 이름 : {0}\n인식한 기록 : {1}\n실제 맵 이름 : {2} \n작성한 사람 : {3}".format(l[index - 1], record, real_map, ctx.message.author)
-                        "맵 이름 : {0} \n인식한 기록 : {1}\n군 산출 : {3}\n작성한 사람 : {2}".format(real_map, record,
-                                                                                     ctx.message.author.name, tier)
-                    )
+        await ctx.channel.send(
+            "{0}의 이번달 친선 횟수 : {1}".format(ctx.message.author.mention, df.get('{0}'.format(id))['cnt']))
 
 
 @bot.command()
 async def 이번달(ctx):
+    id = ctx.message.author.id
+    guild = ctx.message.guild
+    member = guild.get_member(id)
+    nick = ctx.message.author.nick
+    if not nick:
+        nick = ctx.message.author.name
+
+    permission = 0
+    print(member.roles)
+    try:
+        for role in member.roles:
+            if permission < role.position:
+                permission = role.position
+
+    except:
+        pass
+
+    print(permission)
+    file_path = "data.json"
+
+    if permission >= 9 or guild.owner_id == id:
+        with open(file_path) as f:
+            df = json.load(f)
+            for index, (key, elem) in enumerate(df.items()):
+                # print(elem['nickname'])
+                # print(elem['cnt'])
+                await ctx.channel.send("{0} :  {1}".format(elem['nickname'], (elem['cnt'])))
+    else:
+        await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
+
+
+@bot.command()
+async def 닉변(ctx, input):
     id = ctx.message.author.id
     nick = ctx.message.author.nick
     if not nick:
@@ -353,10 +268,13 @@ async def 이번달(ctx):
 
     with open(file_path) as f:
         df = json.load(f)
-        for index, (key, elem) in enumerate(df.items()):
-            # print(elem['nickname'])
-            # print(elem['cnt'])
-            await ctx.channel.send("{0} :  {1}".format(elem['nickname'], (elem['cnt'])))
+
+    if df.get('{0}'.format(id)) == None:
+        await ctx.channel.send("등록되어 있지 않은 사용자입니다!")
+    else:
+        df.get('{0}'.format(id))['nickname'] = nick
+        await ctx.message.delete()
+        await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
 
 
 @bot.command()
@@ -365,7 +283,8 @@ async def 도움말(ctx):
                           description="**등록**\n사용자 등록을 할 수 있습니다.\n`~등록`\n"
                                       "\n\n**친선기록**\n친선 횟수를 인정 받을 수 있습니다.\n `~친선기록 <월> <일> <시> <vs 상대팀> \n <팀원1> <팀원2> <팀원3> <팀원4>`\n `친선 참여자 디스코드 닉네임 작성`\n"
                                       "\n\n**횟수**\n사용자의 이번달 친선 횟수를 확인할 수 있습니다.\n`~횟수`\n"
-                                      "\n\n**닉변**\n친선 횟수 등록에 필요한 닉네임을 수정합니다.\n`~닉변 <닉네임>`\n",
+                                      "\n\n**닉변**\n친선 횟수 등록에 필요한 닉네임을 수정합니다.\n`~닉변 <닉네임>`\n"
+                                      "\n\n**이번달**\n크루원 전원의 이번달 친선 횟수를 확인할 수 있습니다.\n운영진 이상만 사용 가능합니다.\n`~이번달`\n",
                           color=0x62c1cc)
     # embed.set_thumbnail(file='Thumbnail/KakaoTalk_Photo_2023-01-06-16-36-02.png')
     embed.set_footer(text='- 기타 질문은 모두 서동원#5533(온라인일 때만 가능)에게 DM 바랍니다')
