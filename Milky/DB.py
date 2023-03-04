@@ -3,10 +3,10 @@ import pymysql
 
 class Connection:
     def __init__(self):
-        self.host = '127.0.0.1'
+        self.host = 'milkydb.cxxuxsbuezoc.ap-northeast-2.rds.amazonaws.com'
         self.user = 'root'
-        self.pw = '3860'
-        self.db = 'Milky'
+        self.pw = 'milky123!'
+        self.db = 'fuckingdb'
         self.conn = pymysql.connect(host=self.host, user=self.user, password=self.pw, database=self.db, charset="utf8")
         self.cur = self.conn.cursor(pymysql.cursors.DictCursor)
         print("[알림] DB Connect")

@@ -1,19 +1,9 @@
 import discord
 from discord.ext import commands
-import uuid
 import shutil
-from pathlib import Path
-import pytesseract
-import cv2
-import os
 import re
-import csv
-from difflib import SequenceMatcher
 import json
 from discord_buttons_plugin import *
-import schedule
-import time
-from datetime import date
 import uuid
 
 intents = discord.Intents.all()
@@ -64,12 +54,10 @@ async def 등록(ctx):
             'cnt': 0,
             'our': 0,
         }
-        # print(df)
         await ctx.message.delete()
         await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
 
     else:
-        # print(df)
         if df.get('{0}'.format(id)) == None:
 
             df['{0}'.format(id)] = {
@@ -83,23 +71,128 @@ async def 등록(ctx):
                 'cnt': 0,
                 'our': 0,
             }
-            # print(df)
             await ctx.message.delete()
             await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
 
         else:
-            # df['{0}'.format(id)]['tier'] = i
-            # print(df)
-            # if df.get('{0}'.format(id))['nickname'] != nick:
-            #     df.get('{0}'.format(id))['nickname'] = nick
-            #     await ctx.message.delete()
-            #     await ctx.channel.send("닉네임이 수정되었습니다.")
-            # else:
             df.get('{0}'.format(id))['subnickname'] = subnick
             df2.get('{0}'.format(id))['subnickname'] = subnick
 
             await ctx.message.delete()
             await ctx.channel.send(f"{ctx.message.author.mention}님, 이미 저장되어 있는 사용자 입니다!")
+
+    with open(file_path, 'w') as f:
+        json.dump(df, f, indent=2, ensure_ascii=False)
+
+    with open(file_path3, 'w') as f:
+        json.dump(df2, f, indent=2, ensure_ascii=False)
+
+
+@bot.command()
+async def 삭제(ctx, *input):
+    rdid = re.compile('<@(?P<did>\w+)>')
+    des = ' '.join(list(input))
+    reg = rdid.search(des)
+    tDid = reg.group('did')
+    trealDid = f'<@{tDid}>'
+
+    id = ctx.message.author.id
+    guild = ctx.message.guild
+    member = guild.get_member(id)
+
+    permission = 0
+
+    try:
+        for role in member.roles:
+            if permission < role.position:
+                permission = role.position
+
+    except:
+        pass
+
+    file_path = "User.json"
+    file_path3 = "three_month_data.json"
+
+    if permission >= 9 or guild.owner_id == id:
+        with open(file_path) as f:
+            df = json.load(f)
+
+        with open(file_path3) as f:
+            df2 = json.load(f)
+
+        df.pop(tDid)
+        df2.pop(tDid)
+
+        await ctx.message.delete()
+        await ctx.channel.send(f"{trealDid}님 삭제 완료.")
+
+        with open(file_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
+
+        with open(file_path3, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
+
+    else:
+        await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
+
+
+@bot.command()
+async def 강제등록(ctx, *input):
+    rdid = re.compile('<@(?P<did>\w+)>')
+    des = ' '.join(list(input))
+    reg = rdid.search(des)
+    tDid = reg.group('did')
+    trealDid = f'<@{tDid}>'
+    print(trealDid)
+    # await ctx.channel.send(f"디스코드 회원 번호 {tDid}입니다.")
+
+    file_path = "data.json"
+    file_path3 = "three_month_data.json"
+
+    with open(file_path) as f:
+        df = json.load(f)
+
+    with open(file_path3) as f:
+        df2 = json.load(f)
+
+    if not df:
+        df['{0}'.format(tDid)] = {
+            'nickname': "의문의 사나이",
+            'subnickname': trealDid,
+            'cnt': 0,
+        }
+        df2['{0}'.format(tDid)] = {
+            'nickname': "의문의 사나이",
+            'subnickname': trealDid,
+            'cnt': 0,
+            'our': 0,
+        }
+        await ctx.message.delete()
+        await ctx.channel.send(f"정보 저장 완료! 디비접근해서 닉네임 바꾸세요")
+
+    else:
+        if df.get('{0}'.format(tDid)) == None:
+
+            df['{0}'.format(tDid)] = {
+                'nickname': "의문의 사나이",
+                'subnickname': trealDid,
+                'cnt': 0,
+            }
+            df2['{0}'.format(tDid)] = {
+                'nickname': "의문의 사나이",
+                'subnickname': trealDid,
+                'cnt': 0,
+                'our': 0,
+            }
+            await ctx.message.delete()
+            await ctx.channel.send(f"정보 저장 완료! 디비접근해서 닉네임 바꾸세요")
+
+        else:
+            df.get('{0}'.format(tDid))['subnickname'] = trealDid
+            df2.get('{0}'.format(tDid))['subnickname'] = trealDid
+
+            await ctx.message.delete()
+            await ctx.channel.send(f"{trealDid}님, 이미 저장되어 있는 사용자 입니다!")
 
     with open(file_path, 'w') as f:
         json.dump(df, f, indent=2, ensure_ascii=False)
@@ -121,6 +214,11 @@ async def 친선기록(ctx, *input):
 
     member = []
     member_did = []
+    flag = 0
+
+    tMonth = None
+    tDate = None
+    tTime = None
 
     file_path = "data.json"
     file_path3 = "three_month_data.json"
@@ -138,19 +236,17 @@ async def 친선기록(ctx, *input):
             try:
                 reg = rMonth.search(i)
                 tMonth = reg.group('month')
-                # print(tMonth)
             except:
                 pass
             try:
                 reg = rDate.search(i)
                 tDate = reg.group('date')
-                # print(tDate)
             except:
                 pass
             try:
                 reg = rTime.search(i)
                 tTime = reg.group('time')
-                # print(tTime)
+
             except:
                 pass
         else:
@@ -158,9 +254,6 @@ async def 친선기록(ctx, *input):
                 continue
             else:
                 for index, (key, elem) in enumerate(df.items()):
-                    # print(elem['nickname'])
-                    # print(index, key, elem)
-                    # print(i)
                     if i == elem['nickname']:
                         id = key
                         opt = 1
@@ -170,6 +263,7 @@ async def 친선기록(ctx, *input):
                 if id == 0:
                     await ctx.message.delete()
                     await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
+                    flag = 1
                 else:
                     if opt == 1:
                         member.append(i)
@@ -177,154 +271,76 @@ async def 친선기록(ctx, *input):
                     elif opt == 2:
                         member.append(df.get('{0}'.format(id))['nickname'])
                         member_did.append(id)
-                    # df.get('{0}'.format(id))['cnt'] = df.get('{0}'.format(id))['cnt'] + 1
-                    # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, df.get('{0}'.format(id))['cnt']))
 
-    for i in range(len(member)):
-        df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
-        df2.get('{0}'.format(member_did[i]))['cnt'] = df2.get('{0}'.format(member_did[i]))['cnt'] + 1
-        # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
-
-    if len(member) < 4 :
-        for i in range(4-len(member)):
-            member.append(" ")
-
-    # if len(member) == 4:
-    #     for i in range(len(member)):
-    #         df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
-    #         df2.get('{0}'.format(member_did[i]))['cnt'] = df2.get('{0}'.format(member_did[i]))['cnt'] + 1
-    #         # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
-    # else:
-    #     # print("인원이 부족합니다")
-    #     if len(member) == 8:
-    #         await ctx.channel.send("혹시 내전한건가요? ~내전을 이용해주세요!")
-    #     else:
-    #         await ctx.channel.send("인원이 부족합니다! 4명을 입력해주세요!")
-
-    with open(file_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
-
-    with open(file_path3, 'w') as f:
-        json.dump(df2, f, indent=2, ensure_ascii=False)
-
-    # print(tMonth + tDate + tTime)
-    # print(tWho)
-    # print(member)
-    time = '{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)
-    record_path = "Record.json"
-
-    with open(record_path) as f:
-        df = json.load(f)
-        print(df)
-        # print("hello")
-
-    if not df:
-        df['{0}'.format(uuid.uuid4())] = {
-            'time': time,
-            'vs': tWho,
-            'member': member,
-        }
-        # df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
-        #     'vs': tWho,
-        #     'member': member,
-        # }
-        # print(df)
-        # await ctx.channel.send("친선기록 저장 완료!")
-
-    else:
-        df['{0}'.format(uuid.uuid4())] = {
-            'time': time,
-            'vs': tWho,
-            'member': member,
-        }
-    # print(df)
-
-    with open(record_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
-
-    try:
-        url = ctx.message.attachments[0].url
-    except IndexError:
-        embed = discord.Embed(title='🫰친선 임베드 ',
-                              description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-                                          "\n**VS**\n{3}\n"
-                                          "\n**멤버**\n{4} {5} {6} {7}\n"
-                                          "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-                                                                 member[0], member[1], member[2], member[3]),
-
-                              color=0x62c1cc)
+    if tMonth == None or tDate == None or tTime == None:
         await ctx.message.delete()
-        await ctx.channel.send(embed=embed)
-    else:
-        if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+        await ctx.channel.send("날짜를 정확하게 입력해주세요!")
+        flag = 1
+
+    if flag == 0:
+        for i in range(len(member)):
+            df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + 1
+            df2.get('{0}'.format(member_did[i]))['cnt'] = df2.get('{0}'.format(member_did[i]))['cnt'] + 1
+
+        if len(member) < 4:
+            for i in range(4 - len(member)):
+                member.append(" ")
+
+        with open(file_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
+
+        with open(file_path3, 'w') as f:
+            json.dump(df2, f, indent=2, ensure_ascii=False)
+
+        time = '{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)
+        record_path = "Record.json"
+        member_str = " ".join(map(str, member))
+
+        with open(record_path) as f:
+            df = json.load(f)
+
+        if not df:
+            df['{0}'.format(uuid.uuid4())] = {
+                'time': time,
+                'vs': tWho,
+                'member': member,
+            }
+
+        else:
+            df['{0}'.format(uuid.uuid4())] = {
+                'time': time,
+                'vs': tWho,
+                'member': member,
+            }
+
+        with open(record_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
+
+        try:
+            url = ctx.message.attachments[0].url
+        except IndexError:
             embed = discord.Embed(title='🫰친선 임베드 ',
                                   description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
                                               "\n**VS**\n{3}\n"
-                                              "\n**멤버**\n{4} {5} {6} {7}\n"
+                                              "\n**멤버**\n{4}\n"
                                               "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-                                                                     member[0], member[1], member[2], member[3]),
+                                                                     member_str),
+
                                   color=0x62c1cc)
-            embed.set_image(url=url)
             await ctx.message.delete()
             await ctx.channel.send(embed=embed)
-    # if len(member) == 4:
-    #
-    #     record_path = "Record.json"
-    #
-    #     with open(record_path) as f:
-    #         df = json.load(f)
-    #         print(df)
-    #         # print("hello")
-    #
-    #     if not df:
-    #         df['{0}'.format(uuid.uuid4())] = {
-    #             'time': time,
-    #             'vs': tWho,
-    #             'member': member,
-    #         }
-    #         # df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
-    #         #     'vs': tWho,
-    #         #     'member': member,
-    #         # }
-    #         # print(df)
-    #         # await ctx.channel.send("친선기록 저장 완료!")
-    #
-    #     else:
-    #         df['{0}'.format(uuid.uuid4())] = {
-    #             'time': time,
-    #             'vs': tWho,
-    #             'member': member,
-    #         }
-    #     # print(df)
-    #
-    #     with open(record_path, 'w') as f:
-    #         json.dump(df, f, indent=2, ensure_ascii=False)
-    #
-    #     try:
-    #         url = ctx.message.attachments[0].url
-    #     except IndexError:
-    #         embed = discord.Embed(title='🫰친선 임베드 ',
-    #                               description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-    #                                           "\n**VS**\n{3}\n"
-    #                                           "\n**멤버**\n{4} {5} {6} {7}\n"
-    #                                           "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-    #                                                                  member[0], member[1], member[2], member[3]),
-    #
-    #                               color=0x62c1cc)
-    #         await ctx.message.delete()
-    #         await ctx.channel.send(embed=embed)
-    #     else:
-    #         if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
-    #             embed = discord.Embed(title='🫰친선 임베드 ',
-    #                                   description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-    #                                               "\n**VS**\n{3}\n"
-    #                                               "\n**멤버**\n{4} {5} {6} {7}\n"
-    #                                               "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
-    #                                                                      member[0], member[1], member[2], member[3]),
-    #                                   color=0x62c1cc)
-    #             embed.set_image(url=url)
-    #             await ctx.message.delete()
-    #             await ctx.channel.send(embed=embed)
+        else:
+            if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+                embed = discord.Embed(title='🫰친선 임베드 ',
+                                      description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                                  "\n**VS**\n{3}\n"
+                                                  "\n**멤버**\n{4}\n"
+                                                  "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
+                                                                         member_str),
+                                      color=0x62c1cc)
+                embed.set_image(url=url)
+                await ctx.message.delete()
+                await ctx.channel.send(embed=embed)
 
 
 @bot.command()
@@ -336,6 +352,11 @@ async def 내전(ctx, *input):
 
     member = []
     member_did = []
+    flag = 0
+
+    tMonth = None
+    tDate = None
+    tTime = None
 
     file_path = "data.json"
     file_path3 = "three_month_data.json"
@@ -353,32 +374,25 @@ async def 내전(ctx, *input):
             try:
                 reg = rMonth.search(i)
                 tMonth = reg.group('month')
-                # print(tMonth)
             except:
                 pass
             try:
                 reg = rDate.search(i)
                 tDate = reg.group('date')
-                # print(tDate)
             except:
                 pass
             try:
                 reg = rTime.search(i)
                 tTime = reg.group('time')
-                # print(tTime)
             except:
                 pass
             try:
                 reg = rCount.search(i)
                 tCount = reg.group('count')
-                # print(tCount)
             except:
                 pass
         else:
             for index, (key, elem) in enumerate(df.items()):
-                # print(elem['nickname'])
-                # print(index, key, elem)
-                # print(i)
                 if i == elem['nickname']:
                     id = key
                     opt = 1
@@ -388,6 +402,7 @@ async def 내전(ctx, *input):
             if id == 0:
                 await ctx.message.delete()
                 await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
+                flag = 1
             else:
                 if opt == 1:
                     member.append(i)
@@ -395,58 +410,39 @@ async def 내전(ctx, *input):
                 elif opt == 2:
                     member.append(df.get('{0}'.format(id))['nickname'])
                     member_did.append(id)
-                # df.get('{0}'.format(id))['cnt'] = df.get('{0}'.format(id))['cnt'] + 1
-                # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, df.get('{0}'.format(id))['cnt']))
 
-    for i in range(len(member)):
-        df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + int(tCount)
-        df2.get('{0}'.format(member_did[i]))['our'] = df2.get('{0}'.format(member_did[i]))['our'] + 1
-        # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
+    if tMonth == None or tDate == None or tTime == None:
+        await ctx.message.delete()
+        await ctx.channel.send("날짜를 정확하게 입력해주세요!")
+        flag = 1
 
-    if len(member) < 8 :
-        for i in range(8-len(member)):
-            member.append(" ")
+    if flag == 0:
+        for i in range(len(member)):
+            df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + int(tCount)
+            df2.get('{0}'.format(member_did[i]))['our'] = df2.get('{0}'.format(member_did[i]))['our'] + 1
 
-    # if len(member) == 8:
-    #     for i in range(len(member)):
-    #         df.get('{0}'.format(member_did[i]))['cnt'] = df.get('{0}'.format(member_did[i]))['cnt'] + int(tCount)
-    #         df2.get('{0}'.format(member_did[i]))['our'] = df2.get('{0}'.format(member_did[i]))['our'] + 1
-    #         # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(member[i], df.get('{0}'.format(member_did[i]))['cnt']))
-    # else:
-    #     # print("인원이 부족합니다")
-    #     await ctx.channel.send("인원이 부족합니다! 8명을 입력해주세요!")
+        if len(member) < 8:
+            for i in range(8 - len(member)):
+                member.append(" ")
 
-    with open(file_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
+        with open(file_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
 
-    with open(file_path3, 'w') as f:
-        json.dump(df2, f, indent=2, ensure_ascii=False)
+        with open(file_path3, 'w') as f:
+            json.dump(df2, f, indent=2, ensure_ascii=False)
 
-    # print(tMonth + tDate + tTime)
-    # print(tCount)
-    # print(member)
+        time = '{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)
+        record_path = "Record.json"
 
-    time = '{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)
-    record_path = "Record.json"
+        with open(record_path) as f:
+            df = json.load(f)
 
-    with open(record_path) as f:
-        df = json.load(f)
-        # print(df)
-        # print("hello")
-
-    if not df:
         if not df:
             df['{0}'.format(uuid.uuid4())] = {
                 'time': time,
                 'vs': '내전',
                 'member': member,
             }
-            # df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
-            #     'vs': tWho,
-            #     'member': member,
-            # }
-            # print(df)
-            # await ctx.channel.send("친선기록 저장 완료!")
 
         else:
             df['{0}'.format(uuid.uuid4())] = {
@@ -454,29 +450,13 @@ async def 내전(ctx, *input):
                 'vs': '내전',
                 'member': member,
             }
-    # print(df)
 
-    with open(record_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
+        with open(record_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
 
-    try:
-        url = ctx.message.attachments[0].url
-    except IndexError:
-        embed = discord.Embed(title='🫰내전 임베드 ',
-                              description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-                                          "\n**VS**\n{3}\n"
-                                          "\n**멤버**\n{4} {5} {6} {7}\n{8} {9} {10} {11}\n"
-                                          "\n**친선 인정 횟수**\n{12}번\n"
-                                          "\n**기록 완료**\n".format(tMonth, tDate, tTime, '내전',
-                                                                 member[0], member[1], member[2], member[3],
-                                                                 member[4], member[5], member[6], member[7],
-                                                                 tCount),
-
-                              color=0x62c1cc)
-        await ctx.message.delete()
-        await ctx.channel.send(embed=embed)
-    else:
-        if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+        try:
+            url = ctx.message.attachments[0].url
+        except IndexError:
             embed = discord.Embed(title='🫰내전 임베드 ',
                                   description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
                                               "\n**VS**\n{3}\n"
@@ -486,75 +466,25 @@ async def 내전(ctx, *input):
                                                                      member[0], member[1], member[2], member[3],
                                                                      member[4], member[5], member[6], member[7],
                                                                      tCount),
+
                                   color=0x62c1cc)
-            embed.set_image(url=url)
             await ctx.message.delete()
             await ctx.channel.send(embed=embed)
-    # if len(member) == 8:
-    #
-    #     record_path = "Record.json"
-    #
-    #     with open(record_path) as f:
-    #         df = json.load(f)
-    #         # print(df)
-    #         # print("hello")
-    #
-    #     if not df:
-    #         if not df:
-    #             df['{0}'.format(uuid.uuid4())] = {
-    #                 'time': time,
-    #                 'vs': '내전',
-    #                 'member': member,
-    #             }
-    #             # df['{0}.{1}.{2}:00'.format(tMonth, tDate, tTime)] = {
-    #             #     'vs': tWho,
-    #             #     'member': member,
-    #             # }
-    #             # print(df)
-    #             # await ctx.channel.send("친선기록 저장 완료!")
-    #
-    #         else:
-    #             df['{0}'.format(uuid.uuid4())] = {
-    #                 'time': time,
-    #                 'vs': '내전',
-    #                 'member': member,
-    #             }
-    #     # print(df)
-    #
-    #     with open(record_path, 'w') as f:
-    #         json.dump(df, f, indent=2, ensure_ascii=False)
-    #
-    #     try:
-    #         url = ctx.message.attachments[0].url
-    #     except IndexError:
-    #         embed = discord.Embed(title='🫰내전 임베드 ',
-    #                               description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-    #                                           "\n**VS**\n{3}\n"
-    #                                           "\n**멤버**\n{4} {5} {6} {7}\n{8} {9} {10} {11}\n"
-    #                                           "\n**친선 인정 횟수**\n{12}번\n"
-    #                                           "\n**기록 완료**\n".format(tMonth, tDate, tTime, '내전',
-    #                                                                  member[0], member[1], member[2], member[3],
-    #                                                                  member[4], member[5], member[6], member[7],
-    #                                                                  tCount),
-    #
-    #                               color=0x62c1cc)
-    #         await ctx.message.delete()
-    #         await ctx.channel.send(embed=embed)
-    #     else:
-    #         if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
-    #             embed = discord.Embed(title='🫰내전 임베드 ',
-    #                                   description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
-    #                                               "\n**VS**\n{3}\n"
-    #                                               "\n**멤버**\n{4} {5} {6} {7}\n{8} {9} {10} {11}\n"
-    #                                               "\n**친선 인정 횟수**\n{12}번\n"
-    #                                               "\n**기록 완료**\n".format(tMonth, tDate, tTime, '내전',
-    #                                                                      member[0], member[1], member[2], member[3],
-    #                                                                      member[4], member[5], member[6], member[7],
-    #                                                                      tCount),
-    #                                   color=0x62c1cc)
-    #             embed.set_image(url=url)
-    #             await ctx.message.delete()
-    #             await ctx.channel.send(embed=embed)
+        else:
+            if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+                embed = discord.Embed(title='🫰내전 임베드 ',
+                                      description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                                  "\n**VS**\n{3}\n"
+                                                  "\n**멤버**\n{4} {5} {6} {7}\n{8} {9} {10} {11}\n"
+                                                  "\n**친선 인정 횟수**\n{12}번\n"
+                                                  "\n**기록 완료**\n".format(tMonth, tDate, tTime, '내전',
+                                                                         member[0], member[1], member[2], member[3],
+                                                                         member[4], member[5], member[6], member[7],
+                                                                         tCount),
+                                      color=0x62c1cc)
+                embed.set_image(url=url)
+                await ctx.message.delete()
+                await ctx.channel.send(embed=embed)
 
 
 @bot.command()
@@ -578,12 +508,9 @@ async def 이번달(ctx):
     id = ctx.message.author.id
     guild = ctx.message.guild
     member = guild.get_member(id)
-    # nick = ctx.message.author.nick
-    # if not nick:
-    # nick = ctx.message.author.name
 
     permission = 0
-    # print(member.roles)
+
     try:
         for role in member.roles:
             if permission < role.position:
@@ -592,16 +519,41 @@ async def 이번달(ctx):
     except:
         pass
 
-    # print(permission)
     file_path = "data.json"
 
     if permission >= 9 or guild.owner_id == id:
         with open(file_path) as f:
             df = json.load(f)
             for index, (key, elem) in enumerate(df.items()):
-                # print(elem['nickname'])
-                # print(elem['cnt'])
                 await ctx.channel.send("{0} :  {1}".format(elem['nickname'], (elem['cnt'])))
+    else:
+        await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
+
+
+@bot.command()
+async def 포인트(ctx):
+    id = ctx.message.author.id
+    guild = ctx.message.guild
+    member = guild.get_member(id)
+
+    permission = 0
+
+    try:
+        for role in member.roles:
+            if permission < role.position:
+                permission = role.position
+
+    except:
+        pass
+
+    file_path = "three_month_data.json"
+
+    if permission >= 9 or guild.owner_id == id:
+        with open(file_path) as f:
+            df = json.load(f)
+            for index, (key, elem) in enumerate(df.items()):
+                await ctx.channel.send(
+                    "{0} :  친선 횟수 : {1}  내전 횟수 : {2}".format(elem['nickname'], (elem['cnt']), (elem['our'])))
     else:
         await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
 
@@ -625,11 +577,8 @@ async def 닉변(ctx, input):
     if df.get('{0}'.format(id)) == None:
         await ctx.channel.send("등록되어 있지 않은 사용자입니다!")
     else:
-        # print(df.get('{0}'.format(id))['nickname'])
         df.get('{0}'.format(id))['nickname'] = input
         df2.get('{0}'.format(id))['nickname'] = input
-        # print(nick)
-        # print(input)
 
         await ctx.message.delete()
         await ctx.channel.send("{0}의 닉네임이 {1}(으)로 변경되었습니다.".format(ctx.message.author.mention, input))
@@ -686,7 +635,7 @@ async def 초기화(ctx):
 async def 도움말(ctx):
     embed = discord.Embed(title='학봇 사용 설명서',
                           description="**등록**\n사용자 등록을 할 수 있습니다.\n`~등록`\n"
-                                      "\n\n**친선기록**\n친선 횟수를 인정 받을 수 있습니다.\n `~친선기록 <월> <일> <시> <vs 상대팀> \n <@팀원1> <@팀원2> <@팀원3> <@팀원4>`\n `친선 참여자 디스코드 멘션 or 닉네임 작성\n 용병 껴서 친선 진행시 닉네임 입력에 '용병' 입력`\n"
+                                      "\n\n**친선기록**\n친선 횟수를 인정 받을 수 있습니다.\n `~친선기록 <월> <일> <시> <vs 상대팀> \n <@팀원1> <@팀원2> <@팀원3> <@팀원4>`\n `친선 참여자 디스코드 멘션 or 닉네임 작성\n 용병 껴서 친선 진행시 학크루 크루원만 입력`\n\n`입력 예시 1) ~친선기록 2월 01일 23시 vs 은하수 @야도란 @상빈 @이코2 @공수`\n"
                                       "\n\n**내전**\n내전 횟수를 인정 받을 수 있습니다.\n `~내전 <월> <일> <시> \n <@팀원1> <@팀원2> <@팀원3> <@팀원4> <@팀원5> <@팀원6> <@팀원7> <@팀원8> \n<친선 인정 횟수>`\n `내전 참여자 디스코드 멘션 or 닉네임 작성`\n"
                                       "\n\n**횟수**\n사용자의 이번달 친선 횟수를 확인할 수 있습니다.\n`~횟수`\n"
                                       "\n\n**닉변**\n친선 횟수 등록에 필요한 닉네임을 수정합니다.\n`~닉변 <닉네임>`\n"
@@ -714,7 +663,7 @@ async def zhfhskaktmzmEpdh(ctx):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("명령어를 찾지 못했습니다")
+        await ctx.send(f"해당하는 명령어가 없습니다! 바보{ctx.message.author.mention}!")
 
 
 bot.run(token)

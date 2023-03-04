@@ -13,6 +13,7 @@ import csv
 from difflib import SequenceMatcher
 import json
 from discord_buttons_plugin import *
+from DB import *
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -36,6 +37,130 @@ async def on_message(msg):
 @bot.command()
 async def 안녕(ctx):
     await ctx.channel.send("네 주인님")
+
+
+@bot.command()
+async def 등록(ctx):
+    id = ctx.message.author.id
+    nick = ctx.message.author.nick
+    if not nick:
+        nick = ctx.message.author.name
+
+    conn, cur = connection.getConnection()
+    sql = "SELECT * FROM member WHERE id=%s"
+    cur.execute(sql, id)
+    rs = cur.fetchone()
+    print(rs)
+
+    # 처음 등록을 하는 경우
+    if rs is None:
+        sql = "INSERT INTO member (id, name, role, point) values (%s, %s, %s, 0)"
+        cur.execute(sql, (id, nick, 'ROLE_DISCORD'))
+        conn.commit()
+        await ctx.channel.send(f"정보 저장 완료! {ctx.message.author.mention}님 반갑습니다!")
+
+    # 이미 등록이 되있는 경우에는 등록이 되지 않음.
+    else:
+        await ctx.channel.send("이미 등록 되어 있는 사용자입니다.")
+
+@bot.command()
+async def 삭제(ctx, *input):
+
+    rdid = re.compile('<@(?P<did>\w+)>')
+    des = ' '.join(list(input))
+    reg = rdid.search(des)
+    tDid = reg.group('did')
+    trealDid = f'<@{tDid}>'
+
+    id = ctx.message.author.id
+    guild = ctx.message.guild
+    member = guild.get_member(id)
+
+    permission = 0
+
+    try:
+        for role in member.roles:
+            if permission < role.position:
+                permission = role.position
+
+    except:
+        pass
+
+    file_path = "User.json"
+    # file_path3 = "three_month_data.json"
+
+    if permission >= 9 or guild.owner_id == id:
+        with open(file_path) as f:
+            df = json.load(f)
+
+        # with open(file_path3) as f:
+        #     df2 = json.load(f)
+
+        df.pop(tDid)
+        # df2.pop(tDid)
+
+        await ctx.message.delete()
+        await ctx.channel.send(f"{trealDid} 삭제 완료.")
+
+        with open(file_path, 'w') as f:
+            json.dump(df, f, indent=2, ensure_ascii=False)
+
+    else:
+        await ctx.channel.send(f"{ctx.message.author.mention}님은 권한이 없습니다!")
+
+@bot.command()
+async def 내부텟(ctx):
+    id = ctx.message.author.id
+
+    conn, cur = connection.getConnection()
+    sql = "SELECT * FROM member WHERE id=%s"
+    cur.execute(sql, id)
+    rs = cur.fetchone()
+    print(rs)
+
+    # 등록된 사용자가 없을 경우
+    if rs is None:
+        await ctx.channel.send(f"사용자의 정보가 없습니다.")
+
+    # 이미 등록이 되있는 경우에는 등록이 되지 않음.
+    else:
+        if rs['goon'] == "0":
+            goon = 1
+        else:
+            goon = int(rs['goon'])
+        sql = "UPDATE member SET point = %s, goon = %s WHERE id = %s"
+        cur.execute(sql, (rs['point'] + 500, str(goon - 1), id))
+        conn.commit()
+        await ctx.channel.send("됬다")
+
+    # if df.get('{0}'.format(id)) == None:
+    #     await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
+    #
+    # else:
+    #     df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 50000
+    #     df.get('{0}'.format(id))['tier'] = df.get('{0}'.format(id))['tier'] - 1
+    #     if df.get('{0}'.format(id))['tier'] == 0:
+    #         tier = "강주력"
+    #
+    #     elif df.get('{0}'.format(id))['tier'] == 1:
+    #         tier = "주력"
+    #
+    #     elif df.get('{0}'.format(id))['tier'] == 2:
+    #         tier = "1군"
+    #
+    #     elif df.get('{0}'.format(id))['tier'] == 3:
+    #         tier = "2군"
+    #
+    #     elif df.get('{0}'.format(id))['tier'] == 4:
+    #         tier = "3군"
+    #
+    #     elif df.get('{0}'.format(id))['tier'] == 5:
+    #         tier = "4군"
+    #     await ctx.channel.send("{0} 승급 완료! 축하드립니다!".format(tier))
+    #     await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
+    #
+    # with open(file_path, 'w') as f:
+    #     json.dump(df, f, indent=2, ensure_ascii=False)
 
 
 @bot.command()
@@ -471,70 +596,115 @@ async def 공통(ctx):
 
 
 @bot.command()
-async def 내부텟(ctx):
-    id = ctx.message.author.id
-    nick = ctx.message.author.nick
-    if not nick:
-        nick = ctx.message.author.name
+async def 친선(ctx, *input):
+    import re
+    rMonth = re.compile('(?P<month>\d+)월')
+    rDate = re.compile('(?P<date>\d+)일')
+    rTime = re.compile('(?P<time>\d+)시')
+    rWho = re.compile('vs\s(?P<who>\w+)')
 
-    file_path = "User.json"
+    des = ' '.join(list(input))
+    reg = rWho.search(des)
+    tWho = reg.group('who')
+    print(tWho)
 
-    with open(file_path) as f:
-        df = json.load(f)
+    member = []
 
-    if df.get('{0}'.format(id)) == None:
-        await ctx.channel.send("등록되어 있지 않은 사용자입니다! !register로 등록을 먼저 해주세요!")
-
+    for i in input:
+        if (rMonth.search(i) or rDate.search(i) or rTime.search(i)):
+            try:
+                reg = rMonth.search(i)
+                tMonth = reg.group('month')
+                print(tMonth)
+            except:
+                pass
+            try:
+                reg = rDate.search(i)
+                tDate = reg.group('date')
+                print(tDate)
+            except:
+                pass
+            try:
+                reg = rTime.search(i)
+                tTime = reg.group('time')
+                print(tTime)
+            except:
+                pass
+        else:
+            if i == 'vs' or i == tWho:
+                continue
+            else:
+                conn, cur = connection.getConnection()
+                sql = "SELECT * FROM user WHERE name=%s"
+                cur.execute(sql, i)
+                rs = cur.fetchone()
+                print(rs)
+                if rs is None:
+                    await ctx.message.delete()
+                    await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
+                else:
+                    member.append(i)
+    if len(member) == 4:
+        for i in member:
+            sql = "UPDATE user SET cnt = %s WHERE name = %s"
+            cur.execute(sql, (rs['cnt'] + 1, i))
+            conn.commit()
+            # await ctx.channel.send("{0}의 이번달 친선 횟수 : {1}".format(i, rs['cnt'] + 1))
     else:
-        df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 50000
-        df.get('{0}'.format(id))['tier'] = df.get('{0}'.format(id))['tier'] - 1
-        if df.get('{0}'.format(id))['tier'] == 0:
-            tier = "강주력"
+        print("인원이 부족합니다.")
 
-        elif df.get('{0}'.format(id))['tier'] == 1:
-            tier = "주력"
+    print(tMonth + tDate + tTime)
+    print(tWho)
+    print(member)
 
-        elif df.get('{0}'.format(id))['tier'] == 2:
-            tier = "1군"
+    if len(member) is 4:
+        from datetime import datetime
 
-        elif df.get('{0}'.format(id))['tier'] == 3:
-            tier = "2군"
+        dt = '{0}.{1}.{2}.{3}:00'.format(datetime.today().year, tMonth, tDate, tTime)
+        print(dt)
+        sql = "INSERT INTO record (date, VS, mem1, mem2, mem3, mem4) values (%s, %s, %s, %s, %s, %s)"
+        cur.execute(sql, (dt, tWho, member[0], member[1], member[2], member[3]))
+        conn.commit()
+        await ctx.channel.send("친선기록 저장 완료!")
 
-        elif df.get('{0}'.format(id))['tier'] == 4:
-            tier = "3군"
+        try:
+            url = ctx.message.attachments[0].url
+        except IndexError:
+            embed = discord.Embed(title='🫰친선 임베드 ',
+                                  description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                              "\n**VS**\n{3}\n"
+                                              "\n**멤버**\n{4} {5} {6} {7}\n"
+                                              "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
+                                                                     member[0],
+                                                                     member[1], member[2], member[3]),
 
-        elif df.get('{0}'.format(id))['tier'] == 5:
-            tier = "4군"
-        await ctx.channel.send("{0} 승급 완료! 축하드립니다!".format(tier))
-        await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
-
-    with open(file_path, 'w') as f:
-        json.dump(df, f, indent=2, ensure_ascii=False)
+                                  color=0x62c1cc)
+            await ctx.message.delete()
+            await ctx.channel.send(embed=embed)
+        else:
+            if url[0:26] == "https://cdn.discordapp.com":  # look to see if url is from discord
+                embed = discord.Embed(title='🫰친선 임베드 ',
+                                      description="\n\n**친선 시간**\n{0}월 {1}일 {2}시\n"
+                                                  "\n**VS**\n{3}\n"
+                                                  "\n**멤버**\n{4} {5} {6} {7}\n"
+                                                  "\n**기록 완료**\n".format(tMonth, tDate, tTime, tWho,
+                                                                         member[0],
+                                                                         member[1], member[2], member[3]),
+                                      color=0x62c1cc)
+                embed.set_image(url=url)
+                await ctx.message.delete()
+                await ctx.channel.send(embed=embed)
 
 
 @bot.command()
-async def 친선(ctx, *input):
-    for i in input:
-        print(i)
-        id = 0
-        file_path = "User.json"
-
-        with open(file_path) as f:
-            df = json.load(f)
-
-        for index, (key, elem) in enumerate(df.items()):
-            print(elem['nickname'])
-            print(index, key, elem)
-            if (i == elem['nickname']):
-                id = key
-        if id == 0:
-            await ctx.channel.send("{0}은(는) 등록되어 있지 않은 사용자입니다! 다른 이름으로 등록되어있는지 확인해주세요!".format(i))
-        else:
-            df.get('{0}'.format(id))['point'] = df.get('{0}'.format(id))['point'] + 2000
-            await ctx.channel.send("작성자의 포인트 누적 : {0}P".format(df.get('{0}'.format(id))['point']))
-
-        with open(file_path, 'w') as f:
-            json.dump(df, f, indent=2, ensure_ascii=False)
+async def 뭘까(ctx, *input):
+    rdid = re.compile('<@(?P<did>\w+)>')
+    des = ' '.join(list(input))
+    reg = rdid.search(des)
+    tDid = reg.group('did')
+    trealDid = f'<@{tDid}>'
+    print(trealDid)
+    await ctx.channel.send(f"디스코드 회원 번호 {tDid}입니다.")
 
 
 @bot.command()
@@ -579,6 +749,7 @@ class Clear(discord.ui.View):
     async def menu(self, interaction: discord.Interaction, button: discord.ui.Button):
         print("버튼 누른 사람의 디스코드 고유 번호 : " + str(interaction.user.id))
         print("숙제를 완료한 사람의 디스코드 고유 번호 : " + str(self.id))
+
         await interaction.response.send_message("Button click")
 
 
